@@ -1,0 +1,7 @@
+{
+  "name": "柳井市まちなか共創プラットフォーム",
+  "description": "柳井市まちなか夢プランの策定に向けた市民参加型合意形成・高度分析ダッシュボード＆共創ワークスペース",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
+
