@@ -320,6 +320,31 @@ export default function App() {
         </div>
       )}
 
+      {/* Admin Edit Mode Toggle */}
+      {currentRole === 'admin' && (
+        <button
+          onClick={() => {
+            const isEditable = document.body.classList.contains('admin-edit-mode-active');
+            if (isEditable) {
+              document.querySelectorAll('h1, h2, h3, h4, p, li, span').forEach(el => el.removeAttribute('contenteditable'));
+              document.body.classList.remove('admin-edit-mode-active');
+              showToast('編集モードを終了しました');
+            } else {
+              document.querySelectorAll('h1, h2, h3, h4, p, li').forEach(el => {
+                if (!el.closest('nav') && !el.closest('button')) {
+                    el.setAttribute('contenteditable', 'true');
+                }
+              });
+              document.body.classList.add('admin-edit-mode-active');
+              showToast('ページ編集モードをONにしました。テキストをクリックして直接編集できます。');
+            }
+          }}
+          className="fixed bottom-6 left-6 z-50 bg-amber-500 hover:bg-amber-600 text-white px-4 py-3 rounded-full shadow-lg font-bold flex items-center gap-2 transition-transform hover:scale-105"
+        >
+          <span>✏️ ページ編集モード</span>
+        </button>
+      )}
+
       {/* 1. Global Navigation Bar */}
       <Navbar
         currentRole={currentRole}

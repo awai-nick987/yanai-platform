@@ -74,6 +74,7 @@ type WorkspaceMenuKey =
   | 'chat'
   | 'roadmap'
   | 'drive'
+  | 'survey'
   | 'ws_import'
   | 'admin_portal'
   | 'user_roles'
@@ -217,6 +218,18 @@ export const WorkspaceKanban: React.FC<WorkspaceKanbanProps> = ({
               >
                 <FolderGit2 className="w-4 h-4 text-indigo-400" />
                 <span>共有ドライブ</span>
+              </button>
+
+              <button
+                onClick={() => setActiveMenu('survey')}
+                className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
+                  activeMenu === 'survey'
+                    ? 'bg-[#1b3d63] text-white font-bold'
+                    : 'text-slate-300 hover:bg-[#152e4d] hover:text-white'
+                }`}
+              >
+                <BarChart3 className="w-4 h-4 text-indigo-400" />
+                <span>アンケート分析</span>
               </button>
 
               <button
@@ -398,6 +411,7 @@ export const WorkspaceKanban: React.FC<WorkspaceKanbanProps> = ({
             { key: 'chat', label: '協働チャット', icon: MessageSquare },
             { key: 'roadmap', label: 'ロードマップ', icon: Pin },
             { key: 'drive', label: '共有ドライブ', icon: FolderGit2 },
+            { key: 'survey', label: 'アンケート分析', icon: BarChart3 },
             { key: 'ws_import', label: 'WS取り込み', icon: UploadCloud }
           ].map(tab => {
             const Icon = tab.icon;
@@ -457,7 +471,24 @@ export const WorkspaceKanban: React.FC<WorkspaceKanbanProps> = ({
             <WorkspaceDrive currentRole={currentRole} />
           )}
 
-          {/* 7. WS DATA IMPORTER */}
+          {/* 7. SURVEY */}
+          {activeMenu === 'survey' && (
+            <div className="bg-white rounded-xl shadow-xs border border-slate-200 overflow-hidden" style={{ height: 'calc(100vh - 120px)' }}>
+              <div className="bg-slate-50 border-b border-slate-200 px-4 py-3 flex items-center justify-between">
+                <h3 className="font-bold text-slate-800 flex items-center gap-2">
+                  <BarChart3 className="w-5 h-5 text-indigo-500" />
+                  アンケート分析 (外部ツール)
+                </h3>
+              </div>
+              <iframe
+                src="https://survey-58dmlydd2-hiroki987-3697s-projects.vercel.app/"
+                className="w-full h-full border-0"
+                title="Survey Analysis Tool"
+              />
+            </div>
+          )}
+
+          {/* 8. WS DATA IMPORTER */}
           {activeMenu === 'ws_import' && (
             <WorkshopDataImporter
               onImportSubmissions={onImportSubmissions}

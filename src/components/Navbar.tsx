@@ -157,11 +157,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             className="flex items-center gap-2.5 sm:gap-3 cursor-pointer select-none shrink-0" 
             onClick={() => handleNavClick('home')}
           >
-            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full border-2 border-emerald-600 flex items-center justify-center text-emerald-600 shrink-0">
-              <div className="w-4 h-4 sm:w-5 sm:h-5 rounded-full border-2 border-emerald-600 flex items-center justify-center">
-                <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-emerald-600"></div>
-              </div>
-            </div>
+            <img src="/logo_icon.png" alt="柳井市まちなか共創ロゴ" className="w-8 h-8 sm:w-9 sm:h-9 object-contain shrink-0 rounded-full bg-white shadow-sm" />
             <div className="flex flex-col">
               <h1 className="text-xs sm:text-sm md:text-base font-bold text-slate-900 tracking-tight leading-none whitespace-nowrap">
                 柳井市まちなか共創
