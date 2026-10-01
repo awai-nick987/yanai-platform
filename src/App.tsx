@@ -37,6 +37,16 @@ import { AdminModeration } from './components/AdminModeration';
 import { LoginModal } from './components/LoginModal';
 import { Footer } from './components/Footer';
 
+import { 
+  subscribeToSubmissions, 
+  subscribeToVisionOptions,
+  saveSubmission,
+  updateSubmissionInDb,
+  updateVisionOptionInDb,
+  initializeDefaultData 
+} from './services/firebaseService';
+
+
 import { IdeaSubmissionModal } from './components/IdeaSubmissionModal';
 import { IdeaDetailModal } from './components/IdeaDetailModal';
 import { ExportModal } from './components/ExportModal';
@@ -120,6 +130,25 @@ export default function App() {
   const [editingPocProject, setEditingPocProject] = useState<PocProject | null>(null);
   const [reportingPocProject, setReportingPocProject] = useState<PocProject | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  
+  // Firebase Data Subscription
+  useEffect(() => {
+    initializeDefaultData(INITIAL_SUBMISSIONS, INITIAL_VISION_OPTIONS);
+    
+    const unsubSub = subscribeToSubmissions((data) => {
+      if (data.length > 0) setSubmissions(data);
+    });
+    
+    const unsubVis = subscribeToVisionOptions((data) => {
+      if (data.length > 0) setVisionOptions(data);
+    });
+    
+    return () => {
+      unsubSub();
+      unsubVis();
+    };
+  }, []);
 
   // Sync to localStorage
   useEffect(() => {
@@ -415,6 +444,14 @@ export default function App() {
                           key="town_map"
                           submissions={submissions}
                           onVote={(id, type) => {
+                            const sub = submissions.find(s => s.id === id);
+                            if (sub) {
+                              const newData = {
+                                upvotes: type === 'up' ? sub.upvotes + 1 : sub.upvotes,
+                                downvotes: type === 'down' ? (sub.downvotes || 0) + 1 : sub.downvotes
+                              };
+                              updateSubmissionInDb(id, newData);
+                            }
                             setSubmissions(submissions.map(s => s.id === id ? { 
                               ...s, 
                               upvotes: type === 'up' ? s.upvotes + 1 : s.upvotes,
@@ -472,6 +509,14 @@ export default function App() {
               <InteractiveTownMap
                 submissions={submissions}
                 onVote={(id, type) => {
+                  const sub = submissions.find(s => s.id === id);
+                  if (sub) {
+                    const newData = {
+                      upvotes: type === 'up' ? sub.upvotes + 1 : sub.upvotes,
+                      downvotes: type === 'down' ? (sub.downvotes || 0) + 1 : sub.downvotes
+                    };
+                    updateSubmissionInDb(id, newData);
+                  }
                   setSubmissions(submissions.map(s => s.id === id ? { 
                     ...s, 
                     upvotes: type === 'up' ? s.upvotes + 1 : s.upvotes,
@@ -531,6 +576,14 @@ export default function App() {
               <InteractiveTownMap
                 submissions={submissions}
                 onVote={(id, type) => {
+                  const sub = submissions.find(s => s.id === id);
+                  if (sub) {
+                    const newData = {
+                      upvotes: type === 'up' ? sub.upvotes + 1 : sub.upvotes,
+                      downvotes: type === 'down' ? (sub.downvotes || 0) + 1 : sub.downvotes
+                    };
+                    updateSubmissionInDb(id, newData);
+                  }
                   setSubmissions(submissions.map(s => s.id === id ? { 
                     ...s, 
                     upvotes: type === 'up' ? s.upvotes + 1 : s.upvotes,
