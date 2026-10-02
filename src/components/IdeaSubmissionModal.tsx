@@ -36,6 +36,8 @@ export const IdeaSubmissionModal: React.FC<IdeaSubmissionModalProps> = ({
   const [category, setCategory] = useState<CategoryType>('youth_student');
   const [description, setDescription] = useState('');
   const [authorName, setAuthorName] = useState('');
+  const [isAnonymous, setIsAnonymous] = useState(false);
+  const [placeholder, setPlaceholder] = useState('');
   const [organization, setOrganization] = useState('');
   const [ageGroup, setAgeGroup] = useState<AgeGroup>('teens');
   const [residency, setResidency] = useState<ResidencyArea>('school_commute');
@@ -50,9 +52,17 @@ export const IdeaSubmissionModal: React.FC<IdeaSubmissionModalProps> = ({
     extractedTags: string[];
   } | null>(null);
 
+  const PLACEHOLDERS = [
+    "【高校生目線】どんな場所で、誰と、何を実現したい？\n例：柳井学園の生徒や地元商店街と連携して、放課後や週末に金魚ちょうちんの下で地元スイーツを楽しめる空間を作りたいです。",
+    "【子育て世代目線】どんな場所で、誰と、何を実現したい？\n例：白壁通り沿いの空きスペースを活用して、ベビーカーでも入りやすい屋根付きの休憩所を作ってほしいです。",
+    "【現役世代目線】どんな場所で、誰と、何を実現したい？\n例：駅前のロータリー付近に、仕事帰りでもふらっと立ち寄れるオープンカフェ風のスペースがあると、もっと人が滞留すると思います。",
+    "【シニア世代目線】どんな場所で、誰と、何を実現したい？\n例：旧商家通りの歴史を感じながら、お年寄りが座って休めるベンチと、若者と交流できるような案内板を設置してほしいです。"
+  ];
+
   useEffect(() => {
     if (isOpen) {
       setLocationName(defaultLocationName);
+      setPlaceholder(PLACEHOLDERS[Math.floor(Math.random() * PLACEHOLDERS.length)]);
     }
   }, [isOpen, defaultLocationName]);
 
@@ -102,7 +112,7 @@ export const IdeaSubmissionModal: React.FC<IdeaSubmissionModalProps> = ({
       title,
       category,
       description,
-      authorName: authorName.trim() || '市民有志',
+      authorName: (isAnonymous ? '市民有志（匿名）' : authorName.trim()) || '市民有志',
       organization: organization.trim() || undefined,
       ageGroup,
       residency,
