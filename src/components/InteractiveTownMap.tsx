@@ -104,7 +104,7 @@ export const InteractiveTownMap: React.FC<InteractiveTownMapProps> = ({
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [selectedAgeFilter, setSelectedAgeFilter] = useState<string>('all');
   const [selectedPinId, setSelectedPinId] = useState<string | null>(null);
-  const [activeTileLayer, setActiveTileLayer] = useState<MapTileLayer>('gsi_std');
+  const [activeTileLayer, setActiveTileLayer] = useState<MapTileLayer>('osm');
   const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
   const [currentZoom, setCurrentZoom] = useState<number>(DEFAULT_ZOOM);
   const [clickedCoord, setClickedCoord] = useState<{ lat: number; lng: number } | null>(null);
@@ -329,20 +329,28 @@ export const InteractiveTownMap: React.FC<InteractiveTownMapProps> = ({
       const color = getPinColorHex(sub.category);
       const emoji = getCategoryEmoji(sub.category);
 
-      const ideaIcon = L.divIcon({
-        className: 'custom-idea-marker',
-        html: `
-          <div style="transform: translate(-50%, -100%); cursor: pointer; position: relative;" class="transition-transform duration-200 ${isSelected ? 'scale-125 z-40' : 'hover:scale-110 z-20'}">
-            ${isSelected ? '<span style="position: absolute; inset: -4px; border-radius: 9999px; background-color: #fbbf24; opacity: 0.75; animation: ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite;"></span>' : ''}
-            <div style="background-color: ${color}; width: 34px; height: 34px; border-radius: 9999px; border: 2.5px solid white; box-shadow: 0 4px 8px rgba(0,0,0,0.3); display: flex; items-center; justify-content: center; font-size: 14px; position: relative;">
+      const htmlContent = isSelected
+        ? `
+          <div style="transform: translate(-50%, -100%); cursor: pointer; position: relative; z-index: 1000;" class="transition-all duration-300 scale-110">
+            <span style="position: absolute; inset: -8px; border-radius: 9999px; background-color: #ef4444; opacity: 0.6; animation: ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite;"></span>
+            <div style="background-color: ${color}; width: 44px; height: 44px; border-radius: 9999px; border: 3px solid white; box-shadow: 0 8px 16px rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; font-size: 20px; position: relative;">
               <span style="display: flex; align-items: center; justify-content: center; height: 100%;">${emoji}</span>
-              <div style="position: absolute; bottom: -4px; right: -4px; background-color: #0f172a; color: white; font-size: 9px; font-weight: 800; padding: 0 4px; border-radius: 9999px; border: 1.5px solid white; line-height: 1.3;">
+              <div style="position: absolute; bottom: -4px; right: -4px; background-color: #0f172a; color: white; font-size: 10px; font-weight: 800; padding: 1px 6px; border-radius: 9999px; border: 2px solid white; line-height: 1.3;">
                 ${sub.upvotes}
               </div>
             </div>
-            <div style="width: 0; height: 0; border-left: 5px solid transparent; border-right: 5px solid transparent; border-top: 6px solid ${color}; margin: 0 auto;"></div>
+            <div style="width: 0; height: 0; border-left: 8px solid transparent; border-right: 8px solid transparent; border-top: 10px solid ${color}; margin: 0 auto;"></div>
           </div>
-        `,
+        `
+        : `
+          <div style="transform: translate(-50%, -50%); cursor: pointer; position: relative; z-index: 10;" class="transition-transform duration-200 hover:scale-150 opacity-90">
+            <div style="background-color: ${color}; width: 14px; height: 14px; border-radius: 9999px; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></div>
+          </div>
+        `;
+
+      const ideaIcon = L.divIcon({
+        className: 'custom-idea-marker',
+        html: htmlContent,
         iconSize: [0, 0],
         iconAnchor: [0, 0]
       });
@@ -569,6 +577,15 @@ export const InteractiveTownMap: React.FC<InteractiveTownMapProps> = ({
             {/* Map Layer Switcher Tabs */}
             <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl text-xs font-semibold">
               <button
+                onClick={() => setActiveTileLayer('osm')}
+                className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer ${
+                  activeTileLayer === 'osm' ? 'bg-white text-slate-900 font-bold shadow-xs' : 'text-slate-600 hover:text-slate-900'
+                }`}
+                title="OpenStreetMap"
+              >
+                OSM
+              </button>
+              <button
                 onClick={() => setActiveTileLayer('gsi_std')}
                 className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer ${
                   activeTileLayer === 'gsi_std' ? 'bg-white text-slate-900 font-bold shadow-xs' : 'text-slate-600 hover:text-slate-900'
@@ -578,15 +595,6 @@ export const InteractiveTownMap: React.FC<InteractiveTownMapProps> = ({
                 標準（町字名）
               </button>
               <button
-                onClick={() => setActiveTileLayer('gsi_pale')}
-                className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer ${
-                  activeTileLayer === 'gsi_pale' ? 'bg-white text-slate-900 font-bold shadow-xs' : 'text-slate-600 hover:text-slate-900'
-                }`}
-                title="国土地理院 淡色地図（ピンが見やすい）"
-              >
-                淡色
-              </button>
-              <button
                 onClick={() => setActiveTileLayer('gsi_photo')}
                 className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer ${
                   activeTileLayer === 'gsi_photo' ? 'bg-white text-slate-900 font-bold shadow-xs' : 'text-slate-600 hover:text-slate-900'
@@ -594,15 +602,6 @@ export const InteractiveTownMap: React.FC<InteractiveTownMapProps> = ({
                 title="国土地理院 航空写真"
               >
                 航空写真
-              </button>
-              <button
-                onClick={() => setActiveTileLayer('osm')}
-                className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer ${
-                  activeTileLayer === 'osm' ? 'bg-white text-slate-900 font-bold shadow-xs' : 'text-slate-600 hover:text-slate-900'
-                }`}
-                title="OpenStreetMap"
-              >
-                OSM
               </button>
             </div>
           </div>
