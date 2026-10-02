@@ -121,6 +121,7 @@ export default function App() {
   
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [isSubmitModalOpen, setIsSubmitModalOpen] = useState(false);
+  const [submitCoords, setSubmitCoords] = useState<{lat: number, lng: number, locationName: string} | null>(null);
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
   const [isWorkshopPopupOpen, setIsWorkshopPopupOpen] = useState(false);
 
@@ -208,6 +209,10 @@ export default function App() {
   };
 
   // Actions
+  const handleOpenSubmitWithCoords = (lat: number, lng: number, locationName: string) => {
+    setSubmitCoords({ lat, lng, locationName });
+    setIsSubmitModalOpen(true);
+  };
   const handleAddNewIdea = (newIdea: Partial<IdeaSubmission>) => {
     const created: IdeaSubmission = {
       id: `sub-${Date.now()}`,
@@ -526,6 +531,7 @@ export default function App() {
                 }}
                 onSelectSubmissionForDetails={(sub) => setSelectedDetailSubmission(sub)}
                 onAddNewLocationIdea={() => setIsSubmitModalOpen(true)}
+                onOpenSubmitWithCoords={handleOpenSubmitWithCoords}
               />
             </div>
           )}
@@ -593,6 +599,7 @@ export default function App() {
                 }}
                 onSelectSubmissionForDetails={(sub) => setSelectedDetailSubmission(sub)}
                 onAddNewLocationIdea={() => setIsSubmitModalOpen(true)}
+                onOpenSubmitWithCoords={handleOpenSubmitWithCoords}
               />
             </div>
           )}
@@ -718,8 +725,14 @@ export default function App() {
       {/* Idea Submission Modal */}
       <IdeaSubmissionModal
         isOpen={isSubmitModalOpen}
-        onClose={() => setIsSubmitModalOpen(false)}
+        onClose={() => {
+          setIsSubmitModalOpen(false);
+          setSubmitCoords(null);
+        }}
         onSubmitIdea={handleAddNewIdea}
+        defaultLat={submitCoords?.lat}
+        defaultLng={submitCoords?.lng}
+        defaultLocationName={submitCoords?.locationName}
       />
 
       {/* Idea Detail Modal */}
