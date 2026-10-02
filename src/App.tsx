@@ -234,8 +234,13 @@ export default function App() {
       status: 'approved'
     };
 
-    setSubmissions([created, ...submissions]);
-    showToast('貴重なご意見ありがとうございます！データ集計に反映されました。');
+    // Save to Firestore
+    saveSubmission(created).then(() => {
+      showToast('貴重なご意見ありがとうございます！データ集計に反映されました。');
+    }).catch(err => {
+      console.error(err);
+      showToast('保存に失敗しました。');
+    });
   };
 
   const handleUpdateSubmissionStatus = (id: string, newStatus: IdeaSubmission['status']) => {
