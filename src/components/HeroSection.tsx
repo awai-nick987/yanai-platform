@@ -41,9 +41,11 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
           {/* Left Column: Catchcopy & CTAs */}
           <div className="lg:col-span-7 space-y-4 sm:space-y-6">
             
-            {/* Project Category Eyebrow */}
+            {/* Project Category Eyebrow & Logo */}
             <div className="mb-4 sm:mb-6">
-              <img src="/logo_main.png" alt="柳井市まちなかまちづくりプロジェクト" className="w-48 sm:w-64 md:w-80 h-auto object-contain drop-shadow-md" />
+              <div className="inline-block bg-white/95 backdrop-blur-sm px-6 py-4 rounded-2xl shadow-xl border border-white/20">
+                <img src="/logo_main.png" alt="柳井市まちなかまちづくりプロジェクト" className="w-56 sm:w-72 md:w-80 h-auto object-contain" />
+              </div>
             </div>
             <div className="space-y-1">
               <div className="inline-flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1 rounded-full bg-white/10 backdrop-blur-md text-amber-300 text-xs sm:text-sm font-bold border border-white/15">
