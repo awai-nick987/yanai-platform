@@ -169,7 +169,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           </div>
 
           {/* Desktop & Tablet Navigation Menu (Clean & No Line-Wrapping) */}
-          <nav className="hidden lg:flex items-center gap-1 xl:gap-1.5">
+          <nav className="hidden lg:flex flex-1 items-center gap-1 xl:gap-1.5 overflow-x-auto no-scrollbar mask-edges min-w-0 pr-4">
             
             {/* 1. プロジェクト概要 */}
             {toggles.about && (
