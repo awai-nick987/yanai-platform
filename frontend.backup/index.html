@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>柳井市民参加型共創プラットフォーム</title>
+  <link rel="stylesheet" href="styles/main.css">
+</head>
+<body>
+  <header class="header">
+    <div class="container">
+      <h1>🏘️ 柳井市民参加型共創プラットフォーム</h1>
+      <p>あなたの声が、まちを変える</p>
+    </div>
+  </header>
+
+  <main class="container">
+    <!-- タブナビ -->
+    <nav class="tabs">
+      <button class="tab-btn active" data-tab="home">ホーム</button>
+      <button class="tab-btn" data-tab="submit">意見を投稿</button>
+      <button class="tab-btn" data-tab="list">投稿一覧</button>
+    </nav>
+
+    <!-- タブ1: ホーム -->
+    <section id="home" class="tab-content active">
+      <h2>進行中のプロジェクト</h2>
+      <div class="projects-grid">
+        <div class="project-card">
+          <span class="badge">ワークショップ</span>
+          <h3>柳井湾岸エリアの活用</h3>
+          <p>海辺の自然を活かしたまちづくり</p>
+          <p class="meta">投稿数: 87件</p>
+        </div>
+        <div class="project-card">
+          <span class="badge">オンライン</span>
+          <h3>まちなか空き店舗活用</h3>
+          <p>商店街の活性化アイデア募集</p>
+          <p class="meta">投稿数: 124件</p>
+        </div>
+      </div>
+
+      <h2>ダッシュボード</h2>
+      <div class="dashboard">
+        <div class="stat-card">
+          <h3>総投稿数</h3>
+          <p class="stat-number" id="total-count">0</p>
+        </div>
+        <div class="stat-card">
+          <h3>今日の投稿</h3>
+          <p class="stat-number" id="today-count">0</p>
+        </div>
+        <div class="stat-card">
+          <h3>最新投稿</h3>
+          <p class="stat-time" id="latest-time">なし</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- タブ2: 投稿フォーム -->
+    <section id="submit" class="tab-content">
+      <h2>あなたの意見を聞かせてください</h2>
+      <form id="submit-form" class="form">
+        <div class="form-group">
+          <label for="name">お名前（必須）</label>
+          <input type="text" id="name" name="name" required placeholder="例: 田中太郎">
+        </div>
+
+        <div class="form-group">
+          <label for="age">年代（必須）</label>
+          <select id="age" name="age" required>
+            <option value="">選択してください</option>
+            <option value="10s">10代</option>
+            <option value="20s">20代</option>
+            <option value="30s">30代</option>
+            <option value="40s">40代</option>
+            <option value="50s">50代</option>
+            <option value="60s">60代以上</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="theme">テーマ（必須）</label>
+          <select id="theme" name="theme" required>
+            <option value="">選択してください</option>
+            <option value="海・水辺">海・水辺</option>
+            <option value="空き店舗">空き店舗</option>
+            <option value="歩道・広場">歩道・広場</option>
+            <option value="その他">その他</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="content">ご意見（必須）</label>
+          <textarea id="content" name="content" required rows="5" placeholder="あなたの思いや提案をお聞かせください"></textarea>
+        </div>
+
+        <button type="submit" class="btn btn-primary">投稿する</button>
+        <div id="form-message" class="message"></div>
+      </form>
+    </section>
+
+    <!-- タブ3: 投稿一覧 -->
+    <section id="list" class="tab-content">
+      <h2>投稿一覧</h2>
+      <div id="posts-list" class="posts-list">
+        <p class="loading">読み込み中...</p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <p>&copy; 2026 柳井市役所 市民参加推進課</p>
+  </footer>
+
+  <script src="scripts/api-client.js"></script>
+  <script src="scripts/main.js"></script>
+</body>
+</html>

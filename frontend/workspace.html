@@ -1,0 +1,1824 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>メンバーワークスペース - 柳井市民参加型共創プラットフォーム</title>
+  <link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;700;900&family=Outfit:wght@400;700;900&family=DM+Serif+Display:wght@400&display=swap" rel="stylesheet">
+
+  <style>
+    /* ════════════════════════════════════════════════════════════════
+       MEMBER WORKSPACE STYLESHEET
+       ════════════════════════════════════════════════════════════════ */
+
+    :root {
+      /* Primary Colors */
+      --sky: #EAF6FF;
+      --ink: #12264A;
+      --teal: #1B9E8B;
+      --teal2: #0D7A6A;
+
+      /* Secondary Colors */
+      --mint: #D0F0EB;
+      --sun: #FFB703;
+      --peach: #FF8C69;
+      --plum: #6B4EFF;
+      --green: #3BB573;
+      --pink: #FF6B9D;
+
+      /* Neutral & Background */
+      --bg: #F5FBFF;
+      --card: #FFFFFF;
+      --border: #D6EFEA;
+      --muted: #6B8399;
+      --sm: #94B0BF;
+      --dark-bg: #12264A;
+
+      /* Workspace Specific */
+      --sidebar-bg: #0F2D45;
+      --sidebar-hover: #1A3F57;
+      --task-backlog: #F5FBFF;
+      --task-progress: #EAF6FF;
+      --task-done: #E8F5E9;
+
+      /* Typography */
+      --font-ja: 'Zen Kaku Gothic New', sans-serif;
+      --font-en: 'Outfit', sans-serif;
+      --font-serif: 'DM Serif Display', serif;
+
+      /* Shadow */
+      --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
+      --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.08);
+      --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.12);
+
+      /* Spacing */
+      --space-xs: 0.25rem;
+      --space-sm: 0.5rem;
+      --space-md: 1rem;
+      --space-lg: 1.5rem;
+      --space-xl: 2rem;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+      font-size: 16px;
+    }
+
+    body {
+      font-family: var(--font-ja);
+      background-color: var(--bg);
+      color: var(--ink);
+      line-height: 1.6;
+      overflow: hidden;
+    }
+
+    /* ════════════════════════════════════════════════════════════════
+       LAYOUT
+       ════════════════════════════════════════════════════════════════ */
+
+    .workspace-container {
+      display: flex;
+      height: 100vh;
+    }
+
+    .workspace-sidebar {
+      width: 280px;
+      background-color: var(--sidebar-bg);
+      color: white;
+      overflow-y: auto;
+      border-right: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .workspace-main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .workspace-header {
+      height: 70px;
+      background: white;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 var(--space-xl);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .workspace-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: var(--space-xl);
+    }
+
+    /* ════════════════════════════════════════════════════════════════
+       HEADER
+       ════════════════════════════════════════════════════════════════ */
+
+    .header-brand {
+      display: flex;
+      align-items: center;
+      gap: var(--space-md);
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: var(--ink);
+    }
+
+    .header-brand-icon {
+      font-size: 1.8rem;
+    }
+
+    .header-user {
+      display: flex;
+      align-items: center;
+      gap: var(--space-lg);
+    }
+
+    .user-profile {
+      display: flex;
+      align-items: center;
+      gap: var(--space-md);
+      cursor: pointer;
+      padding: var(--space-sm) var(--space-md);
+      border-radius: 8px;
+      transition: background 0.2s;
+    }
+
+    .user-profile:hover {
+      background: var(--sky);
+    }
+
+    .user-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--teal), var(--teal2));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      color: white;
+    }
+
+    .user-info {
+      text-align: left;
+    }
+
+    .user-name {
+      font-weight: 700;
+      font-size: 0.9rem;
+      color: var(--ink);
+    }
+
+    .user-role {
+      font-size: 0.75rem;
+      color: var(--muted);
+    }
+
+    .logout-btn {
+      padding: var(--space-sm) var(--space-md);
+      background: var(--sky);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.8rem;
+      color: var(--ink);
+      transition: all 0.2s;
+    }
+
+    .logout-btn:hover {
+      border-color: var(--teal);
+      color: var(--teal);
+    }
+
+    /* ════════════════════════════════════════════════════════════════
+       SIDEBAR NAVIGATION
+       ════════════════════════════════════════════════════════════════ */
+
+    .sidebar-section {
+      padding: var(--space-lg) var(--space-md);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .sidebar-section:last-child {
+      border-bottom: none;
+    }
+
+    .sidebar-title {
+      font-size: 0.75rem;
+      font-weight: 900;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: rgba(255, 255, 255, 0.5);
+      margin-bottom: var(--space-md);
+    }
+
+    .sidebar-nav {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-sm);
+    }
+
+    .nav-item {
+      padding: var(--space-md);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+      color: rgba(255, 255, 255, 0.8);
+      font-size: 0.95rem;
+      font-weight: 500;
+      border-left: 3px solid transparent;
+      display: flex;
+      align-items: center;
+      gap: var(--space-md);
+    }
+
+    .nav-item:hover {
+      background: var(--sidebar-hover);
+      color: white;
+    }
+
+    .nav-item.active {
+      background: var(--teal);
+      color: white;
+      border-left-color: var(--sun);
+    }
+
+    .nav-icon {
+      font-size: 1.1rem;
+      width: 24px;
+      text-align: center;
+    }
+
+    .sidebar-team {
+      margin-top: var(--space-lg);
+      padding-top: var(--space-lg);
+    }
+
+    .team-member {
+      padding: var(--space-sm) var(--space-md);
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      gap: var(--space-sm);
+      margin-bottom: var(--space-sm);
+      transition: all 0.2s;
+      cursor: pointer;
+    }
+
+    .team-member:hover {
+      background: var(--sidebar-hover);
+    }
+
+    .team-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--teal);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+      flex-shrink: 0;
+    }
+
+    .team-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .team-name {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: white;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .team-role {
+      font-size: 0.7rem;
+      color: rgba(255, 255, 255, 0.6);
+    }
+
+    /* ════════════════════════════════════════════════════════════════
+       CONTENT VIEWS
+       ════════════════════════════════════════════════════════════════ */
+
+    .view-panel {
+      display: none;
+    }
+
+    .view-panel.active {
+      display: block;
+    }
+
+    /* ════════════════════════════════════════════════════════════════
+       DASHBOARD VIEW
+       ════════════════════════════════════════════════════════════════ */
+
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: var(--space-lg);
+      margin-bottom: var(--space-xl);
+    }
+
+    .dashboard-card {
+      background: white;
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      padding: var(--space-lg);
+      box-shadow: var(--shadow-md);
+      transition: all 0.25s;
+    }
+
+    .dashboard-card:hover {
+      border-color: var(--teal);
+      transform: translateY(-4px);
+      box-shadow: 0 12px 32px rgba(27, 158, 139, 0.12);
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: var(--space-md);
+    }
+
+    .card-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--ink);
+      display: flex;
+      align-items: center;
+      gap: var(--space-sm);
+    }
+
+    .card-icon {
+      font-size: 1.3rem;
+    }
+
+    .card-count {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      background: var(--mint);
+      border-radius: 50%;
+      font-size: 0.8rem;
+      font-weight: 900;
+      color: var(--teal2);
+    }
+
+    .task-item {
+      padding: var(--space-md);
+      background: var(--task-backlog);
+      border-left: 3px solid var(--sun);
+      border-radius: 6px;
+      margin-bottom: var(--space-sm);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .task-item:hover {
+      background: var(--sky);
+      border-left-color: var(--teal);
+    }
+
+    .task-item.in-progress {
+      border-left-color: var(--teal);
+      background: var(--task-progress);
+    }
+
+    .task-item.done {
+      border-left-color: var(--green);
+      background: var(--task-done);
+      opacity: 0.7;
+    }
+
+    .task-item-title {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--ink);
+      margin-bottom: var(--space-sm);
+    }
+
+    .task-item-meta {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.75rem;
+      color: var(--muted);
+    }
+
+    .quick-link {
+      display: flex;
+      align-items: center;
+      gap: var(--space-md);
+      padding: var(--space-md);
+      background: var(--sky);
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s;
+      margin-bottom: var(--space-sm);
+    }
+
+    .quick-link:hover {
+      background: var(--mint);
+      border-left: 3px solid var(--teal);
+    }
+
+    .quick-link-icon {
+      font-size: 1.3rem;
+    }
+
+    .quick-link-content {
+      flex: 1;
+    }
+
+    .quick-link-title {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--ink);
+    }
+
+    .quick-link-info {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    /* ════════════════════════════════════════════════════════════════
+       TASKS VIEW
+       ════════════════════════════════════════════════════════════════ */
+
+    .tasks-toolbar {
+      display: flex;
+      gap: var(--space-md);
+      margin-bottom: var(--space-lg);
+      flex-wrap: wrap;
+    }
+
+    .view-toggle {
+      display: flex;
+      gap: var(--space-sm);
+    }
+
+    .toggle-btn {
+      padding: var(--space-sm) var(--space-md);
+      border: 1.5px solid var(--border);
+      background: white;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--muted);
+      transition: all 0.2s;
+    }
+
+    .toggle-btn.active {
+      background: var(--teal);
+      color: white;
+      border-color: var(--teal);
+    }
+
+    .kanban-board {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: var(--space-lg);
+    }
+
+    .kanban-column {
+      background: var(--sky);
+      border-radius: 8px;
+      padding: var(--space-md);
+    }
+
+    .kanban-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: var(--space-md);
+      padding-bottom: var(--space-md);
+      border-bottom: 1.5px solid var(--border);
+    }
+
+    .kanban-title {
+      font-weight: 700;
+      font-size: 0.95rem;
+      color: var(--ink);
+    }
+
+    .kanban-count {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 26px;
+      height: 26px;
+      background: var(--teal);
+      color: white;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 900;
+    }
+
+    .kanban-cards {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-sm);
+      min-height: 100px;
+    }
+
+    .kanban-card {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: var(--space-md);
+      cursor: grab;
+      transition: all 0.2s;
+    }
+
+    .kanban-card:hover {
+      box-shadow: var(--shadow-md);
+      transform: translateY(-2px);
+    }
+
+    .kanban-card-title {
+      font-weight: 600;
+      font-size: 0.9rem;
+      color: var(--ink);
+      margin-bottom: var(--space-sm);
+    }
+
+    .kanban-card-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.75rem;
+      color: var(--muted);
+    }
+
+    .priority-badge {
+      display: inline-block;
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+      font-weight: 600;
+      font-size: 0.7rem;
+    }
+
+    .priority-high {
+      background: #FFEBEE;
+      color: #C62828;
+    }
+
+    .priority-medium {
+      background: #FFF3E0;
+      color: #E65100;
+    }
+
+    .priority-low {
+      background: #E8F5E9;
+      color: #1B5E20;
+    }
+
+    .list-view {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-md);
+    }
+
+    .list-item {
+      background: white;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      padding: var(--space-md);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      transition: all 0.2s;
+    }
+
+    .list-item:hover {
+      border-color: var(--teal);
+      box-shadow: var(--shadow-md);
+    }
+
+    .list-item-left {
+      flex: 1;
+    }
+
+    .list-item-title {
+      font-weight: 600;
+      color: var(--ink);
+      margin-bottom: var(--space-sm);
+    }
+
+    .list-item-meta {
+      display: flex;
+      gap: var(--space-lg);
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .member-view {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: var(--space-lg);
+    }
+
+    .member-card {
+      background: white;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      padding: var(--space-lg);
+    }
+
+    .member-card-header {
+      display: flex;
+      align-items: center;
+      gap: var(--space-md);
+      margin-bottom: var(--space-md);
+      padding-bottom: var(--space-md);
+      border-bottom: 1.5px solid var(--border);
+    }
+
+    .member-card-avatar {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--teal), var(--teal2));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      color: white;
+      flex-shrink: 0;
+    }
+
+    .member-card-info {
+      flex: 1;
+    }
+
+    .member-name {
+      font-weight: 700;
+      font-size: 0.95rem;
+      color: var(--ink);
+    }
+
+    .member-role {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .member-tasks-list {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-sm);
+    }
+
+    .member-task {
+      padding: var(--space-sm);
+      background: var(--sky);
+      border-left: 2px solid var(--teal);
+      border-radius: 4px;
+      font-size: 0.8rem;
+    }
+
+    /* ════════════════════════════════════════════════════════════════
+       CHAT VIEW
+       ════════════════════════════════════════════════════════════════ */
+
+    .chat-container {
+      display: grid;
+      grid-template-columns: 200px 1fr;
+      gap: var(--space-lg);
+      height: 500px;
+    }
+
+    .chat-sidebar {
+      background: white;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      padding: var(--space-md);
+      overflow-y: auto;
+    }
+
+    .chat-section-title {
+      font-size: 0.75rem;
+      font-weight: 900;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: var(--space-md);
+      margin-top: var(--space-md);
+    }
+
+    .chat-section-title:first-child {
+      margin-top: 0;
+    }
+
+    .channel-item {
+      padding: var(--space-sm) var(--space-md);
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 0.9rem;
+      color: var(--ink);
+      margin-bottom: var(--space-sm);
+    }
+
+    .channel-item:hover {
+      background: var(--sky);
+      color: var(--teal);
+    }
+
+    .channel-item.active {
+      background: var(--teal);
+      color: white;
+    }
+
+    .chat-window {
+      background: white;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .chat-header {
+      border-bottom: 1.5px solid var(--border);
+      padding: var(--space-md);
+    }
+
+    .chat-title {
+      font-weight: 700;
+      color: var(--ink);
+    }
+
+    .chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: var(--space-md);
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-md);
+    }
+
+    .message {
+      display: flex;
+      gap: var(--space-md);
+      margin-bottom: var(--space-md);
+    }
+
+    .message-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--teal);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.9rem;
+      color: white;
+      flex-shrink: 0;
+    }
+
+    .message-content {
+      flex: 1;
+    }
+
+    .message-author {
+      font-weight: 600;
+      font-size: 0.85rem;
+      color: var(--ink);
+    }
+
+    .message-time {
+      font-size: 0.7rem;
+      color: var(--muted);
+      margin-left: var(--space-sm);
+    }
+
+    .message-text {
+      font-size: 0.9rem;
+      color: var(--ink);
+      padding: var(--space-sm) var(--space-md);
+      background: var(--sky);
+      border-radius: 6px;
+      margin-top: var(--space-sm);
+    }
+
+    .message.system .message-text {
+      background: var(--mint);
+      color: var(--teal2);
+    }
+
+    .chat-input {
+      border-top: 1.5px solid var(--border);
+      padding: var(--space-md);
+      display: flex;
+      gap: var(--space-sm);
+    }
+
+    .chat-input input {
+      flex: 1;
+      padding: var(--space-sm) var(--space-md);
+      border: 1.5px solid var(--border);
+      border-radius: 6px;
+      font-size: 0.9rem;
+      font-family: var(--font-ja);
+    }
+
+    .chat-input input:focus {
+      outline: none;
+      border-color: var(--teal);
+      background: var(--sky);
+    }
+
+    .chat-send {
+      padding: var(--space-sm) var(--space-md);
+      background: var(--teal);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+
+    .chat-send:hover {
+      background: var(--teal2);
+    }
+
+    /* ════════════════════════════════════════════════════════════════
+       GANTT VIEW
+       ════════════════════════════════════════════════════════════════ */
+
+    .gantt-container {
+      background: white;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .gantt-chart {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .gantt-row {
+      display: grid;
+      grid-template-columns: 200px 1fr;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .gantt-row:last-child {
+      border-bottom: none;
+    }
+
+    .gantt-label {
+      padding: var(--space-md);
+      border-right: 1.5px solid var(--border);
+      display: flex;
+      align-items: center;
+      font-weight: 600;
+      font-size: 0.9rem;
+      color: var(--ink);
+      background: var(--sky);
+    }
+
+    .gantt-bar-container {
+      padding: var(--space-md);
+      display: flex;
+      align-items: center;
+      position: relative;
+    }
+
+    .gantt-bar {
+      height: 24px;
+      border-radius: 4px;
+      background: linear-gradient(90deg, var(--teal), var(--teal2));
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: white;
+      transition: all 0.2s;
+    }
+
+    .gantt-bar:hover {
+      box-shadow: var(--shadow-md);
+      opacity: 0.9;
+    }
+
+    .gantt-bar.complete {
+      background: linear-gradient(90deg, var(--green), #45A049);
+    }
+
+    .gantt-bar.pending {
+      background: linear-gradient(90deg, #FFB703, #FB8500);
+    }
+
+    /* ════════════════════════════════════════════════════════════════
+       DRIVE VIEW
+       ════════════════════════════════════════════════════════════════ */
+
+    .drive-container {
+      background: white;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      padding: var(--space-lg);
+    }
+
+    .drive-breadcrumb {
+      display: flex;
+      gap: var(--space-sm);
+      margin-bottom: var(--space-lg);
+      font-size: 0.9rem;
+      color: var(--muted);
+    }
+
+    .drive-breadcrumb a {
+      color: var(--teal);
+      cursor: pointer;
+    }
+
+    .drive-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: var(--space-lg);
+    }
+
+    .drive-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: var(--space-md);
+      padding: var(--space-md);
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-align: center;
+    }
+
+    .drive-item:hover {
+      border-color: var(--teal);
+      background: var(--sky);
+      transform: translateY(-2px);
+    }
+
+    .drive-icon {
+      font-size: 2rem;
+    }
+
+    .drive-name {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--ink);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      width: 100%;
+    }
+
+    .drive-date {
+      font-size: 0.7rem;
+      color: var(--muted);
+    }
+
+    /* ════════════════════════════════════════════════════════════════
+       RESPONSIVE
+       ════════════════════════════════════════════════════════════════ */
+
+    @media (max-width: 1024px) {
+      .workspace-sidebar {
+        width: 200px;
+      }
+
+      .chat-container {
+        grid-template-columns: 150px 1fr;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .workspace-container {
+        flex-direction: column;
+      }
+
+      .workspace-sidebar {
+        width: 100%;
+        height: auto;
+        display: none;
+      }
+
+      .workspace-main {
+        flex: 1;
+      }
+
+      .header-brand {
+        font-size: 1rem;
+      }
+
+      .dashboard-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .kanban-board {
+        grid-template-columns: 1fr;
+      }
+
+      .chat-container {
+        grid-template-columns: 1fr;
+        height: auto;
+      }
+
+      .member-view {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="workspace-container">
+    <!-- SIDEBAR -->
+    <div class="workspace-sidebar">
+      <div class="sidebar-section">
+        <div class="sidebar-title">Main</div>
+        <div class="sidebar-nav">
+          <div class="nav-item active" onclick="switchView('dashboard')">
+            <span class="nav-icon">📌</span>
+            <span>ダッシュボード</span>
+          </div>
+          <div class="nav-item" onclick="switchView('tasks')">
+            <span class="nav-icon">📋</span>
+            <span>タスク</span>
+          </div>
+          <div class="nav-item" onclick="switchView('chat')">
+            <span class="nav-icon">💬</span>
+            <span>チャット</span>
+          </div>
+          <div class="nav-item" onclick="switchView('gantt')">
+            <span class="nav-icon">📅</span>
+            <span>ガントチャート</span>
+          </div>
+          <div class="nav-item" onclick="switchView('drive')">
+            <span class="nav-icon">📁</span>
+            <span>ドライブ</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-title">設定</div>
+        <div class="sidebar-nav">
+          <div class="nav-item" onclick="switchView('settings')">
+            <span class="nav-icon">⚙️</span>
+            <span>設定</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="sidebar-section sidebar-team">
+        <div class="sidebar-title">Team</div>
+        <div id="team-members-list"></div>
+      </div>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div class="workspace-main">
+      <!-- HEADER -->
+      <div class="workspace-header">
+        <div class="header-brand">
+          <span class="header-brand-icon">🏛</span>
+          <span>柳井市 ワークスペース</span>
+        </div>
+        <div class="header-user">
+          <div class="user-profile" onclick="toggleUserMenu()">
+            <div class="user-avatar">👨</div>
+            <div class="user-info">
+              <div class="user-name">山田太郎</div>
+              <div class="user-role">Admin</div>
+            </div>
+          </div>
+          <button class="logout-btn">Logout</button>
+        </div>
+      </div>
+
+      <!-- CONTENT -->
+      <div class="workspace-content">
+        <!-- DASHBOARD VIEW -->
+        <div id="dashboard" class="view-panel active">
+          <div style="margin-bottom: var(--space-xl);">
+            <h2 style="font-size: 1.8rem; margin-bottom: var(--space-lg); color: var(--ink);">📊 本日の概要</h2>
+          </div>
+
+          <div class="dashboard-grid">
+            <!-- Today's Tasks Card -->
+            <div class="dashboard-card">
+              <div class="card-header">
+                <div class="card-title">
+                  <span class="card-icon">📋</span>
+                  <span>本日のタスク</span>
+                </div>
+                <div class="card-count" id="tasks-count">5</div>
+              </div>
+              <div id="dashboard-tasks"></div>
+            </div>
+
+            <!-- Upcoming Events Card -->
+            <div class="dashboard-card">
+              <div class="card-header">
+                <div class="card-title">
+                  <span class="card-icon">📅</span>
+                  <span>Upcoming Events</span>
+                </div>
+              </div>
+              <div class="quick-link">
+                <div class="quick-link-icon">🚶</div>
+                <div class="quick-link-content">
+                  <div class="quick-link-title">歩行者にやさしい道路づくり</div>
+                  <div class="quick-link-info">3月15日 14:00</div>
+                </div>
+              </div>
+              <div class="quick-link">
+                <div class="quick-link-icon">💬</div>
+                <div class="quick-link-content">
+                  <div class="quick-link-title">チーム会議</div>
+                  <div class="quick-link-info">明日 10:00</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- モデレーション待機中 Card -->
+            <div class="dashboard-card">
+              <div class="card-header">
+                <div class="card-title">
+                  <span class="card-icon">⚠️</span>
+                  <span>Moderation Queue</span>
+                </div>
+                <div class="card-count">7</div>
+              </div>
+              <p style="font-size: 0.9rem; color: var(--muted); margin-bottom: var(--space-md);">低信度の投稿が3件フラグされました</p>
+              <button style="padding: var(--space-sm) var(--space-md); background: var(--sky); border: 1px solid var(--border); border-radius: 6px; cursor: pointer; font-size: 0.85rem; color: var(--teal); font-weight: 600; transition: all 0.2s;" onmouseover="this.style.background='var(--mint)'" onmouseout="this.style.background='var(--sky)'">
+                Review Now →
+              </button>
+            </div>
+          </div>
+
+          <div class="dashboard-grid">
+            <!-- 未読メッセージ -->
+            <div class="dashboard-card">
+              <div class="card-header">
+                <div class="card-title">
+                  <span class="card-icon">💬</span>
+                  <span>未読メッセージ</span>
+                </div>
+                <div class="card-count">3</div>
+              </div>
+              <div class="quick-link">
+                <div class="quick-link-icon">#</div>
+                <div class="quick-link-content">
+                  <div class="quick-link-title">#general</div>
+                  <div class="quick-link-info">新しいメッセージ 2件</div>
+                </div>
+              </div>
+              <div class="quick-link">
+                <div class="quick-link-icon">#</div>
+                <div class="quick-link-content">
+                  <div class="quick-link-title">#プロジェクト-海水辺</div>
+                  <div class="quick-link-info">新しいメッセージ 1件</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- チーム統計 -->
+            <div class="dashboard-card">
+              <div class="card-header">
+                <div class="card-title">
+                  <span class="card-icon">📈</span>
+                  <span>チーム統計</span>
+                </div>
+              </div>
+              <div style="display: flex; flex-direction: column; gap: var(--space-md);">
+                <div>
+                  <div style="font-size: 0.85rem; color: var(--muted); margin-bottom: var(--space-sm);">Active Projects</div>
+                  <div style="font-size: 1.8rem; font-weight: 700; color: var(--teal);">8</div>
+                </div>
+                <div>
+                  <div style="font-size: 0.85rem; color: var(--muted); margin-bottom: var(--space-sm);">完了したタスク</div>
+                  <div style="font-size: 1.8rem; font-weight: 700; color: var(--green);">24</div>
+                </div>
+                <div>
+                  <div style="font-size: 0.85rem; color: var(--muted); margin-bottom: var(--space-sm);">チーム参加度</div>
+                  <div style="font-size: 1.8rem; font-weight: 700; color: var(--sun);">92%</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 最近のドキュメント -->
+            <div class="dashboard-card">
+              <div class="card-header">
+                <div class="card-title">
+                  <span class="card-icon">📄</span>
+                  <span>最近のドキュメント</span>
+                </div>
+              </div>
+              <div class="quick-link">
+                <div class="quick-link-icon">📋</div>
+                <div class="quick-link-content">
+                  <div class="quick-link-title">3月15日WS議事録</div>
+                  <div class="quick-link-info">3月19日 更新</div>
+                </div>
+              </div>
+              <div class="quick-link">
+                <div class="quick-link-icon">📊</div>
+                <div class="quick-link-content">
+                  <div class="quick-link-title">3月レポート</div>
+                  <div class="quick-link-info">3月31日 作成予定</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TASKS VIEW -->
+        <div id="tasks" class="view-panel">
+          <div style="margin-bottom: var(--space-xl);">
+            <h2 style="font-size: 1.8rem; margin-bottom: var(--space-lg); color: var(--ink);">📋 Task Management</h2>
+          </div>
+
+          <div class="tasks-toolbar">
+            <div class="view-toggle">
+              <button class="toggle-btn active" onclick="switchTaskView('kanban')">Kanban</button>
+              <button class="toggle-btn" onclick="switchTaskView('list')">List</button>
+              <button class="toggle-btn" onclick="switchTaskView('members')">メンバー別</button>
+            </div>
+          </div>
+
+          <!-- カンバンビュー -->
+          <div id="kanban-view" class="kanban-board">
+            <div class="kanban-column">
+              <div class="kanban-header">
+                <div class="kanban-title">バックログ</div>
+                <div class="kanban-count">6</div>
+              </div>
+              <div class="kanban-cards" id="backlog-column"></div>
+            </div>
+
+            <div class="kanban-column">
+              <div class="kanban-header">
+                <div class="kanban-title">進行中</div>
+                <div class="kanban-count">3</div>
+              </div>
+              <div class="kanban-cards" id="progress-column"></div>
+            </div>
+
+            <div class="kanban-column">
+              <div class="kanban-header">
+                <div class="kanban-title">レビュー中</div>
+                <div class="kanban-count">2</div>
+              </div>
+              <div class="kanban-cards" id="review-column"></div>
+            </div>
+
+            <div class="kanban-column">
+              <div class="kanban-header">
+                <div class="kanban-title">完了</div>
+                <div class="kanban-count">18</div>
+              </div>
+              <div class="kanban-cards" id="done-column"></div>
+            </div>
+          </div>
+
+          <!-- リストビュー -->
+          <div id="list-view" class="list-view" style="display: none;">
+            <div id="list-items"></div>
+          </div>
+
+          <!-- Members View -->
+          <div id="members-view" class="member-view" style="display: none;">
+            <div id="member-cards"></div>
+          </div>
+        </div>
+
+        <!-- CHAT VIEW -->
+        <div id="chat" class="view-panel">
+          <div style="margin-bottom: var(--space-lg);">
+            <h2 style="font-size: 1.8rem; color: var(--ink);">💬 Chat & Collaboration</h2>
+          </div>
+
+          <div class="chat-container">
+            <div class="chat-sidebar">
+              <div class="chat-section-title">チャンネル</div>
+              <div id="chat-channels"></div>
+
+              <div class="chat-section-title">ダイレクトメッセージ</div>
+              <div class="channel-item">山田太郎</div>
+              <div class="channel-item">全体チーム</div>
+            </div>
+
+            <div class="chat-window">
+              <div class="chat-header">
+                <div class="chat-title" id="chat-title">#general</div>
+              </div>
+              <div class="chat-messages" id="chat-messages"></div>
+              <div class="chat-input">
+                <input type="text" placeholder="メッセージを入力...">
+                <button class="chat-send">Send</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- GANTT VIEW -->
+        <div id="gantt" class="view-panel">
+          <div style="margin-bottom: var(--space-lg);">
+            <h2 style="font-size: 1.8rem; margin-bottom: var(--space-lg); color: var(--ink);">📅 Project Timeline</h2>
+          </div>
+
+          <div class="gantt-container">
+            <div class="gantt-chart" id="gantt-chart"></div>
+          </div>
+        </div>
+
+        <!-- DRIVE VIEW -->
+        <div id="drive" class="view-panel">
+          <div style="margin-bottom: var(--space-lg);">
+            <h2 style="font-size: 1.8rem; margin-bottom: var(--space-lg); color: var(--ink);">📁 共有ドライブ</h2>
+          </div>
+
+          <div class="drive-container">
+            <div class="drive-breadcrumb">
+              <span>📁 Root</span>
+              <span>/</span>
+              <span id="current-folder">プロジェクト資料</span>
+            </div>
+
+            <div class="drive-grid" id="drive-items"></div>
+          </div>
+        </div>
+
+        <!-- SETTINGS VIEW -->
+        <div id="settings" class="view-panel">
+          <div style="margin-bottom: var(--space-lg);">
+            <h2 style="font-size: 1.8rem; margin-bottom: var(--space-lg); color: var(--ink);">⚙️ Settings</h2>
+          </div>
+
+          <div class="dashboard-card" style="max-width: 600px;">
+            <h3 style="font-size: 1.1rem; margin-bottom: var(--space-lg); color: var(--ink);">User Management</h3>
+            <div id="user-management"></div>
+          </div>
+
+          <div class="dashboard-card" style="max-width: 600px; margin-top: var(--space-lg);">
+            <h3 style="font-size: 1.1rem; margin-bottom: var(--space-lg); color: var(--ink);">Role & Permissions</h3>
+            <div style="font-size: 0.9rem; color: var(--ink); line-height: 1.8;">
+              <p><strong>Admin:</strong> 全機能へのアクセス</p>
+              <p><strong>Moderator:</strong> 投稿審査 + プロジェクト編集</p>
+              <p><strong>Analyst:</strong> 読み取り専用 + レポート生成</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="scripts/mock-data.js"></script>
+  <script src="scripts/api-client.js"></script>
+  <script>
+    // ════════════════════════════════════════════════════════════════
+    // STATE
+    // ════════════════════════════════════════════════════════════════
+
+    let TEAM_MEMBERS = [
+      {
+        id: 'member_001',
+        name: '山田太郎',
+        role: 'admin',
+        email: 'yamada@yanai-city.jp',
+        avatar: '👨',
+        taskCount: 3
+      },
+      {
+        id: 'member_002',
+        name: '佐藤花子',
+        role: 'moderator',
+        email: 'sato@yanai-city.jp',
+        avatar: '👩',
+        taskCount: 4
+      },
+      {
+        id: 'member_003',
+        name: '新部美咲',
+        role: 'analyst',
+        email: 'shinbe@yanai-city.jp',
+        avatar: '👧',
+        taskCount: 2
+      }
+    ];
+
+    let TASKS = [
+      {
+        id: 1,
+        title: 'WS準備: 3月15日版プレゼン資料作成',
+        status: 'in-progress',
+        assignee_name: '山田太郎',
+        due_date: '2025-03-14',
+        priority: 'high'
+      },
+      {
+        id: 2,
+        title: '議事録作成: 前回WS',
+        status: 'done',
+        assignee_name: '佐藤花子',
+        due_date: '2025-03-10',
+        priority: 'medium'
+      },
+      {
+        id: 3,
+        title: '次回日程の打合せ',
+        status: 'backlog',
+        assignee_name: '新部美咲',
+        due_date: '2025-03-25',
+        priority: 'medium'
+      },
+      {
+        id: 4,
+        title: '投稿データの月次集計',
+        status: 'in-progress',
+        assignee_name: '新部美咲',
+        due_date: '2025-03-31',
+        priority: 'high'
+      },
+      {
+        id: 5,
+        title: 'Google ドライブへのアップロード',
+        status: 'backlog',
+        assignee_name: '山田太郎',
+        due_date: '2025-04-01',
+        priority: 'low'
+      }
+    ];
+
+    const CHAT_CHANNELS = {
+      general: [
+        { author: '山田太郎', message: 'おはようございます！', time: '09:00' },
+        { author: '佐藤花子', message: '朝のレポート確認しました。投稿が増えてますね。', time: '09:05' },
+        { author: '山田太郎', message: 'そうですね。3月15日のWSに向けて準備を進めています。', time: '09:10' }
+      ],
+      'project-sea': [
+        { author: '新部美咲', message: '海・水辺エリアの投稿が87件になりました', time: '14:30' },
+        { author: '佐藤花子', message: 'カフェの提案が多く出ていますね', time: '14:35' }
+      ],
+      'admin-alerts': [
+        { author: 'System', message: '⚠️ 低信度の投稿が3件フラグされました', time: '08:00', system: true },
+        { author: '山田太郎', message: '確認しました。うち2件は承認、1件は要確認です。', time: '08:15' }
+      ]
+    };
+
+    const GANTT_ITEMS = [
+      {
+        name: '【WS】柳井湾岸エリア',
+        status: '完了',
+        startDate: '2025-02-15',
+        dueDate: '2025-03-15',
+        progress: 100
+      },
+      {
+        name: '【Online】空き店舗',
+        status: '進行中',
+        startDate: '2025-02-20',
+        dueDate: '2025-04-15',
+        progress: 65
+      },
+      {
+        name: '【計画】基本計画策定',
+        status: '予定',
+        startDate: '2025-04-01',
+        dueDate: '2025-05-31',
+        progress: 0
+      },
+      {
+        name: '【企画】イベント計画',
+        status: '予定',
+        startDate: '2025-05-01',
+        dueDate: '2025-06-30',
+        progress: 0
+      }
+    ];
+
+    const DRIVE_FOLDERS = [
+      { name: 'プロジェクト資料', type: 'folder', date: '2025-03-19' },
+      { name: 'WS議事録 & 写真', type: 'folder', date: '2025-03-18' },
+      { name: '市民投稿 (エクスポート)', type: 'folder', date: '2025-03-19' },
+      { name: 'レポート (月次)', type: 'folder', date: '2025-03-15' },
+      { name: 'テンプレート', type: 'folder', date: '2025-03-01' }
+    ];
+
+    // ════════════════════════════════════════════════════════════════
+    // UI FUNCTIONS
+    // ════════════════════════════════════════════════════════════════
+
+    function switchView(viewName) {
+      // Hide all views
+      document.querySelectorAll('.view-panel').forEach(panel => {
+        panel.classList.remove('active');
+      });
+
+      // Show selected view
+      document.getElementById(viewName).classList.add('active');
+
+      // Update nav highlight
+      document.querySelectorAll('.nav-item').forEach(item => {
+        item.classList.remove('active');
+      });
+      event.target.closest('.nav-item').classList.add('active');
+
+      // Initialize view if needed
+      if (viewName === 'dashboard') initDashboard();
+      if (viewName === 'tasks') initTasks();
+      if (viewName === 'chat') initChat();
+      if (viewName === 'gantt') initガントチャート();
+      if (viewName === 'drive') initドライブ();
+      if (viewName === 'settings') initSettings();
+    }
+
+    function switchTaskView(viewType) {
+      // Hide all task views
+      document.getElementById('kanban-view').style.display = 'none';
+      document.getElementById('list-view').style.display = 'none';
+      document.getElementById('members-view').style.display = 'none';
+
+      // Show selected view
+      if (viewType === 'kanban') {
+        document.getElementById('kanban-view').style.display = 'grid';
+        renderKanban();
+      } else if (viewType === 'list') {
+        document.getElementById('list-view').style.display = 'flex';
+        renderListView();
+      } else if (viewType === 'members') {
+        document.getElementById('members-view').style.display = 'grid';
+        renderMembersView();
+      }
+
+      // Update button highlight
+      document.querySelectorAll('.toggle-btn').forEach(btn => {
+        btn.classList.remove('active');
+      });
+      event.target.classList.add('active');
+    }
+
+    function initDashboard() {
+      renderDashboardTasks();
+      renderTeamMembers();
+    }
+
+    function renderDashboardTasks() {
+      const dashboard = document.getElementById('dashboard-tasks');
+      const tasksToShow = TASKS.filter(t => t.status !== 'done').slice(0, 3);
+
+      dashboard.innerHTML = tasksToShow.map(task => `
+        <div class="task-item ${task.status}">
+          <div class="task-item-title">${task.title}</div>
+          <div class="task-item-meta">
+            <span>${task.assignee_name || task.assignee || 'Unassigned'}</span>
+            <span>${task.due_date || task.dueDate || 'No due date'}</span>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function renderTeamMembers() {
+      const container = document.getElementById('team-members-list');
+      container.innerHTML = TEAM_MEMBERS.map(member => `
+        <div class="team-member">
+          <div class="team-avatar">${member.avatar}</div>
+          <div class="team-info">
+            <div class="team-name">${member.name}</div>
+            <div class="team-role">${member.role}</div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function initTasks() {
+      renderKanban();
+    }
+
+    function renderKanban() {
+      const statuses = {
+        backlog: 'backlog-column',
+        'in-progress': 'progress-column',
+        'under-review': 'review-column',
+        done: 'done-column'
+      };
+
+      Object.keys(statuses).forEach(status => {
+        const column = document.getElementById(statuses[status]);
+        const tasks = TASKS.filter(t => t.status === status);
+
+        column.innerHTML = tasks.map(task => `
+          <div class="kanban-card">
+            <div class="kanban-card-title">${task.title}</div>
+            <div class="kanban-card-meta">
+              <span class="priority-badge priority-${task.priority}">${task.priority.toUpperCase()}</span>
+              <span>${task.assignee_name || task.assignee || 'Unassigned'}</span>
+            </div>
+          </div>
+        `).join('');
+      });
+    }
+
+    function renderListView() {
+      const container = document.getElementById('list-items');
+      container.innerHTML = TASKS.map(task => {
+        const assigneeName = task.assignee_name || task.assignee || 'Unassigned';
+        const dueDate = task.due_date || task.dueDate || 'No due date';
+        const progressPercent = task.status === 'done' ? 100 : task.status === 'in-progress' || task.status === 'in_progress' ? 50 : 25;
+        return `
+        <div class="list-item">
+          <div class="list-item-left">
+            <div class="list-item-title">${task.title}</div>
+            <div class="list-item-meta">
+              <span>${assigneeName}</span>
+              <span>${dueDate}</span>
+              <span class="priority-badge priority-${task.priority}">${task.priority.toUpperCase()}</span>
+            </div>
+          </div>
+          <div style="width: 100px; height: 6px; background: var(--border); border-radius: 3px; overflow: hidden;">
+            <div style="height: 100%; background: linear-gradient(90deg, var(--teal), var(--teal2)); width: ${progressPercent}%;"></div>
+          </div>
+        </div>
+      `}).join('');
+    }
+
+    function renderMembersView() {
+      const container = document.getElementById('member-cards');
+      container.innerHTML = TEAM_MEMBERS.map(member => {
+        const memberTasks = TASKS.filter(t => t.assignee_name === member.name || t.assignee === member.name);
+        return `
+          <div class="member-card">
+            <div class="member-card-header">
+              <div class="member-card-avatar">${member.avatar}</div>
+              <div class="member-card-info">
+                <div class="member-name">${member.name}</div>
+                <div class="member-role">${member.role}</div>
+              </div>
+            </div>
+            <div class="member-tasks-list">
+              ${memberTasks.slice(0, 2).map(task => `
+                <div class="member-task">${task.title}</div>
+              `).join('')}
+              ${memberTasks.length > 2 ? `<div class="member-task">+${memberTasks.length - 2} more</div>` : ''}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function initChat() {
+      renderChatチャンネル();
+      renderChatMessages('general');
+    }
+
+    function renderChatチャンネル() {
+      const container = document.getElementById('chat-channels');
+      container.innerHTML = Object.keys(CHAT_CHANNELS).map(channel => `
+        <div class="channel-item ${channel === 'general' ? 'active' : ''}" onclick="switchChatChannel('${channel}')">
+          # ${channel.replace('-', ' ')}
+        </div>
+      `).join('');
+    }
+
+    function switchChatChannel(channel) {
+      renderChatMessages(channel);
+      document.getElementById('chat-title').textContent = `#${channel.replace('-', ' ')}`;
+
+      document.querySelectorAll('.channel-item').forEach(item => {
+        item.classList.remove('active');
+      });
+      event.target.classList.add('active');
+    }
+
+    function renderChatMessages(channel) {
+      const container = document.getElementById('chat-messages');
+      const messages = CHAT_CHANNELS[channel] || [];
+
+      container.innerHTML = messages.map(msg => `
+        <div class="message ${msg.system ? 'system' : ''}">
+          <div class="message-avatar">${msg.author === 'System' ? '🔔' : '👤'}</div>
+          <div class="message-content">
+            <div>
+              <span class="message-author">${msg.author}</span>
+              <span class="message-time">${msg.time}</span>
+            </div>
+            <div class="message-text">${msg.message}</div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function initガントチャート() {
+      renderガントチャート();
+    }
+
+    function renderガントチャート() {
+      const container = document.getElementById('gantt-chart');
+      container.innerHTML = GANTT_ITEMS.map(item => `
+        <div class="gantt-row">
+          <div class="gantt-label">${item.name}</div>
+          <div class="gantt-bar-container">
+            <div class="gantt-bar ${item.status === '完了' ? 'complete' : item.status === '進行中' ? 'pending' : ''}" style="width: ${Math.max(item.progress, 10)}%; min-width: 50px;">
+              ${item.progress}%
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function initドライブ() {
+      renderドライブ();
+    }
+
+    function renderドライブ() {
+      const container = document.getElementById('drive-items');
+      container.innerHTML = DRIVE_FOLDERS.map(folder => `
+        <div class="drive-item">
+          <div class="drive-icon">📁</div>
+          <div class="drive-name">${folder.name}</div>
+          <div class="drive-date">${folder.date}</div>
+        </div>
+      `).join('');
+    }
+
+    function initSettings() {
+      renderUserManagement();
+    }
+
+    function renderUserManagement() {
+      const container = document.getElementById('user-management');
+      container.innerHTML = TEAM_MEMBERS.map(member => `
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: var(--space-md); background: var(--sky); border-radius: 6px; margin-bottom: var(--space-sm);">
+          <div>
+            <div style="font-weight: 600; color: var(--ink);">${member.name}</div>
+            <div style="font-size: 0.85rem; color: var(--muted);">${member.email}</div>
+          </div>
+          <div style="display: flex; gap: var(--space-md);">
+            <span style="padding: var(--space-sm) var(--space-md); background: white; border: 1px solid var(--border); border-radius: 4px; font-size: 0.8rem; font-weight: 600; color: var(--teal);">${member.role.toUpperCase()}</span>
+            <button style="padding: var(--space-sm) var(--space-md); border: none; border-radius: 4px; background: var(--peach); color: white; cursor: pointer; font-size: 0.8rem; font-weight: 600;">Remove</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function toggleUserMenu() {
+      console.log('User menu toggled');
+    }
+
+    // ════════════════════════════════════════════════════════════════
+    // INITIALIZE ON PAGE LOAD
+    // ════════════════════════════════════════════════════════════════
+
+    async function initializeWorkspace() {
+      try {
+        // Fetch tasks from API
+        const taskData = await fetchWorkspaceTasks();
+        if (taskData && taskData.allTasks) {
+          // Convert API format to display format
+          TASKS = taskData.allTasks.map(t => ({
+            id: t.id,
+            title: t.title,
+            status: t.status,
+            assignee_name: t.assignee_name || 'Unassigned',
+            due_date: t.due_date || null,
+            priority: t.priority || 'medium'
+          }));
+        }
+      } catch (error) {
+        console.error('Error loading tasks:', error);
+        // Use default TASKS if API fails
+      }
+
+      // Initialize UI
+      initDashboard();
+      renderTeamMembers();
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      initializeWorkspace();
+    });
+  </script>
+</body>
+</html>
+
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<script src="scripts/google-auth.js"></script>
