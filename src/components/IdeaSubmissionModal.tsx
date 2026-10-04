@@ -318,12 +318,11 @@ export const IdeaSubmissionModal: React.FC<IdeaSubmissionModalProps> = ({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
             <div className="col-span-1 sm:col-span-2">
               <label className="block text-xs font-bold text-slate-800 mb-1">
-                対象の場所・エリア <span className="text-rose-500">*</span>
+                対象の場所・エリア（任意）
               </label>
               <div className="flex flex-col sm:flex-row gap-2 items-start sm:items-center">
                 <input
                   type="text"
-                  required
                   value={locationName}
                   onChange={(e) => setLocationName(e.target.value)}
                   placeholder="具体的な場所（例: 白壁通り、駅前広場など）"
@@ -333,7 +332,7 @@ export const IdeaSubmissionModal: React.FC<IdeaSubmissionModalProps> = ({
                   📍 座標: {defaultLat.toFixed(5)}, {defaultLng.toFixed(5)}
                 </div>
               </div>
-              <p className="text-[10px] text-slate-500 mt-1">※ マップから指定した場合、その位置情報が自動で記録されます。場所の名称はわかりやすいように自由に変更可能です。</p>
+              <p className="text-[10px] text-slate-500 mt-1">※ まちなかの構想的なアイデアなど特定できない場合は空欄で構いません。マップ指定の場合はその場所が記録されますが、概ねのエリア指定としてテキスト入力（任意）も可能です。</p>
             </div>
 
             <div>
@@ -341,31 +340,15 @@ export const IdeaSubmissionModal: React.FC<IdeaSubmissionModalProps> = ({
                 年代・属性（集計用） <span className="text-rose-500">*</span>
               </label>
               <select
-                value={ageGroup}
-                onChange={(e) => setAgeGroup(e.target.value as AgeGroup)}
-                className="w-full text-xs px-3 py-2 border border-slate-300 rounded-lg bg-slate-50 font-medium focus:ring-2 focus:ring-indigo-500 focus:outline-hidden"
-              >
-                <option value="teens">🎓 10代（高校生・柳井学園・柳井高等）</option>
-                <option value="twenties_thirties">👶 20〜30代（若手・子育て世代）</option>
-                <option value="forties_fifties">💼 40〜50代（現役世代・事業者）</option>
-                <option value="sixties_plus">🍵 60代以上（シニア・地域役員）</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-slate-800 mb-1">
-                居住地域・関わり <span className="text-rose-500">*</span>
-              </label>
-              <select
                 value={residency}
                 onChange={(e) => setResidency(e.target.value as ResidencyArea)}
                 className="w-full text-xs px-3 py-2 border border-slate-300 rounded-lg bg-slate-50 font-medium focus:ring-2 focus:ring-indigo-500 focus:outline-hidden"
               >
-                <option value="school_commute">🏫 柳井学園・柳井高校在校生（通学）</option>
-                <option value="downtown_station">🚉 柳井駅前・中心市街地在住</option>
-                <option value="shirakabe_area">🏮 白壁の町並み周辺在住</option>
-                <option value="suburban_yanai">🏡 市内郊外（伊陸・日積・大畠等）</option>
-                <option value="tourism_relation">⛵ 観光客・関係人口・ファン</option>
+                <option value="yanai_student">柳井高校・柳井学園在校生（通学）</option>
+                <option value="commuter">通勤者</option>
+                <option value="downtown_resident">まちなか在住</option>
+                <option value="suburban_resident">市内郊外在住</option>
+                <option value="tourist_fan">観光客・関係人口・ファン</option>
               </select>
             </div>
 

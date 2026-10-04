@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { PocProject, UserRole } from '../types';
-import { Sparkles, Calendar, MapPin, Target, Users, ChevronRight, PlusCircle, Heart, ArrowRight } from 'lucide-react';
+import { Sparkles, Calendar, MapPin, Target, Users, ChevronRight, PlusCircle, Heart, ArrowRight , Eye, EyeOff, Trash2} from 'lucide-react';
 
 interface PocProjectSectionProps {
   projects: PocProject[];
@@ -9,6 +9,8 @@ interface PocProjectSectionProps {
   onOpenCreateProjectModal: () => void;
   onOpenReportWizard?: (project: PocProject) => void;
   onLikeProject: (id: string) => void;
+  onToggleVisibility?: (id: string) => void;
+  onDeleteProject?: (id: string) => void;
 }
 
 export const PocProjectSection: React.FC<PocProjectSectionProps> = ({
@@ -16,14 +18,16 @@ export const PocProjectSection: React.FC<PocProjectSectionProps> = ({
   currentRole,
   onSelectProject,
   onOpenCreateProjectModal,
-  onLikeProject
+  onLikeProject,
+  onToggleVisibility,
+  onDeleteProject
 }) => {
   const [filterCategory, setFilterCategory] = useState<string>('all');
   const [filterStatus, setFilterStatus] = useState<string>('all');
 
   const categories = ['all', 'まちなか回遊', '子育て支援', '移動・交通', '白壁景観・文化', '若者・高校生'];
 
-  const filteredProjects = projects.filter(p => {
+  const filteredProjects = visibleProjects.filter(p => {
     if (filterCategory !== 'all' && !p.tags.includes(filterCategory) && p.category !== filterCategory) return false;
     if (filterStatus !== 'all' && p.status !== filterStatus) return false;
     return true;

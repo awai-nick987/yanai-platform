@@ -1,27 +1,30 @@
 export type UserRole = 'citizen' | 'recruiter' | 'workspace' | 'admin';
 
 export type CategoryType = 
-  | 'value_creation' // 価値創造
-  | 'improvement'    // 改善点
-  | 'shirakabe_view' // 白壁・景観保全
-  | 'youth_student'  // 若者・高校生
-  | 'downtown_buzz'  // まちなか賑わい
-  | 'traffic_walk'   // 交通・ウォーカブル
-  | 'culture_event'; // 観光・イベント
+  | 'living_infrastructure' 
+  | 'living_environment'    
+  | 'living_community'      
+  | 'bustle_landscape'      
+  | 'bustle_tourism'        
+  | 'other_concept';        
 
 export type AgeGroup = 
-  | 'teens'     // 10代（高校生・柳井学園・柳井高校等）
-  | 'twenties_thirties' // 20〜30代（若手社会人・子育て世代）
-  | 'forties_fifties'   // 40〜50代（現役世代・事業者）
-  | 'sixties_plus';     // 60代以上（シニア・地域役員）
+  | 'under_10s'
+  | '10s'
+  | '20s'
+  | '30s'
+  | '40s'
+  | '50s'
+  | '60s'
+  | '70s'
+  | '80s_plus';
 
 export type ResidencyArea = 
-  | 'downtown_station'  // 柳井駅前・中心市街地
-  | 'shirakabe_area'    // 白壁の町並み周辺
-  | 'suburban_yanai'    // 柳井市内郊外（伊陸・日積・大畠・余田等）
-  | 'school_commute'    // 柳井学園・柳井高校在校生（通学）
-  | 'outside_commute'   // 市外からの通勤・来訪
-  | 'tourism_relation'; // 観光・関係人口
+  | 'yanai_student'     
+  | 'commuter'          
+  | 'downtown_resident' 
+  | 'suburban_resident' 
+  | 'tourist_fan';      
 
 export type SubmissionStatus = 'pending' | 'approved' | 'in_review' | 'reflected' | 'rejected';
 
@@ -222,6 +225,7 @@ export interface PocProject {
   likesCount: number;
   updatedAt: string;
   tags: string[];
+  isHidden?: boolean;
 }
 
 export interface WorkspaceTask {

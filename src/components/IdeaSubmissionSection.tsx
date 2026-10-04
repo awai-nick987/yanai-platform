@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { CategoryType, AgeGroup, ResidencyArea, IdeaSubmission } from '../types';
-import { MessageSquarePlus, Send, MapPin, Sparkles, CheckCircle2, ShieldCheck } from 'lucide-react';
+import { MessageSquarePlus, Send, MapPin, CheckCircle2 } from 'lucide-react';
 
 interface IdeaSubmissionSectionProps {
   onAddNewIdea: (idea: Partial<IdeaSubmission>) => void;
@@ -13,160 +13,173 @@ export const IdeaSubmissionSection: React.FC<IdeaSubmissionSectionProps> = ({
 }) => {
   const [gender, setGender] = useState('');
   const [age, setAge] = useState<string>('');
-  const [targetProject, setTargetProject] = useState('');
+  const [category, setCategory] = useState<string>('');
+  const [residency, setResidency] = useState<string>('');
+  const [locationName, setLocationName] = useState('');
   const [opinion, setOpinion] = useState('');
   const [submitted, setSubmitted] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!opinion.trim()) return;
-
-    let ageGroup: AgeGroup = 'twenties_thirties';
-    if (age === '10s') ageGroup = 'teens';
-    else if (age === '20s' || age === '30s') ageGroup = 'twenties_thirties';
-    else if (age === '40s' || age === '50s') ageGroup = 'forties_fifties';
-    else if (age === '60s' || age === '70s' || age === '80s') ageGroup = 'sixties_plus';
+    if (!opinion.trim() || !category || !age || !residency) return;
 
     onAddNewIdea({
-      title: `${targetProject || '中心市街地'}への市民提案`,
-      category: targetProject.includes('子育て') ? 'value_creation' : targetProject.includes('移動') ? 'traffic_walk' : 'downtown_buzz',
+      title: `まちなかに関する提案`,
+      category: category as CategoryType,
       description: opinion.trim(),
-      authorName: gender ? `市民有志 (${gender === 'male' ? '男性' : gender === 'female' ? '女性' : '無回答'}・${age || '年代未選択'})` : '市民有志',
-      ageGroup: ageGroup,
-      residency: 'downtown_station',
-      locationName: '柳井市中心市街地・駅前エリア',
+      authorName: `市民有志 (${gender === 'male' ? '男性' : gender === 'female' ? '女性' : '無回答'}・${age})`,
+      ageGroup: age as AgeGroup,
+      residency: residency as ResidencyArea,
+      locationName: locationName || '',
       lat: 33.9678,
       lng: 132.1075,
-      expectationScore: 85,
-      feasibilityScore: 75,
-      tags: ['市民投稿', targetProject || 'まちなか共創']
+      expectationScore: 0,
+      feasibilityScore: 0,
+      tags: ['市民投稿']
     });
 
     setSubmitted(true);
     setOpinion('');
+    setLocationName('');
     setTimeout(() => setSubmitted(false), 4000);
   };
 
   return (
-    <section id="idea-submission-section" className="space-y-6">
-      
-      {/* Title Header matching Screenshot */}
-      <div className="space-y-1">
-        <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-          意見投稿フォーム
-        </h2>
-        <p className="text-xs sm:text-sm text-slate-500">
-          個人情報に配慮し、投稿属性は「性別・年代」のみ収集します。投稿は夜間バッチで整理されます（現在はシミュレーション）。
-        </p>
-      </div>
+    <section id="submit_idea" className="py-24 bg-white relative">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 relative z-10">
+        <div className="text-center mb-12">
+          <h2 className="text-3xl font-bold text-slate-900 mb-4 tracking-tight flex items-center justify-center gap-3">
+            <MessageSquarePlus className="w-8 h-8 text-blue-600" />
+            まちなかアイデア・意見投稿
+          </h2>
+          <p className="text-slate-600 text-sm max-w-2xl mx-auto">
+            柳井市中心市街地・白壁エリアに関するあなたの「あったらいいな」や「ここを改善してほしい」を投稿してください。
+          </p>
+        </div>
 
-      {/* Form Card matching Screenshot */}
-      <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-xs max-w-4xl">
-        
-        {submitted && (
-          <div className="mb-6 p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-900 flex items-center gap-3 text-xs sm:text-sm font-bold animate-in fade-in">
-            <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
-            <span>貴重なご意見ありがとうございます！データ集計・モデレーションキューに送信されました。</span>
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit} className="space-y-5">
-          
-          {/* Row 1: 性別 & 年代 matching screenshot */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            
-            {/* 性別 * */}
-            <div>
-              <label className="block text-xs sm:text-sm font-bold text-slate-900 mb-1.5">
-                性別 *
-              </label>
-              <select
-                value={gender}
-                onChange={(e) => setGender(e.target.value)}
-                required
-                className="w-full px-3.5 py-2.5 bg-white rounded-xl border border-slate-300 text-xs sm:text-sm text-slate-800 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
-              >
-                <option value="">選択してください</option>
-                <option value="male">男性 (male)</option>
-                <option value="female">女性 (female)</option>
-                <option value="other">その他・回答しない</option>
-              </select>
+        <div className="bg-slate-50 border border-slate-200 rounded-3xl p-6 sm:p-10 shadow-sm max-w-3xl mx-auto">
+          {submitted ? (
+            <div className="text-center py-12 animate-in fade-in zoom-in duration-500">
+              <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <CheckCircle2 className="w-10 h-10 text-green-600" />
+              </div>
+              <h3 className="text-2xl font-bold text-slate-900 mb-3">投稿ありがとうございました！</h3>
+              <p className="text-slate-600 text-sm">
+                あなたのアイデアは無事に送信されました。まちなか共創の参考データとして活用させていただきます。
+              </p>
             </div>
+          ) : (
+            <form onSubmit={handleSubmit} className="space-y-6">
+              
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-bold text-slate-800 mb-2">性別</label>
+                  <select
+                    value={gender}
+                    onChange={(e) => setGender(e.target.value)}
+                    className="w-full px-3.5 py-2.5 bg-white rounded-xl border border-slate-300 text-sm text-slate-800 focus:ring-2 focus:ring-blue-500 outline-none"
+                  >
+                    <option value="">選択してください</option>
+                    <option value="male">男性</option>
+                    <option value="female">女性</option>
+                    <option value="other">その他・回答しない</option>
+                  </select>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-bold text-slate-800 mb-2">年代 <span className="text-rose-500">*</span></label>
+                  <select
+                    value={age}
+                    onChange={(e) => setAge(e.target.value)}
+                    required
+                    className="w-full px-3.5 py-2.5 bg-white rounded-xl border border-slate-300 text-sm text-slate-800 focus:ring-2 focus:ring-blue-500 outline-none"
+                  >
+                    <option value="">選択してください</option>
+                    <option value="under_10s">10代未満</option>
+                    <option value="10s">10代</option>
+                    <option value="20s">20代</option>
+                    <option value="30s">30代</option>
+                    <option value="40s">40代</option>
+                    <option value="50s">50代</option>
+                    <option value="60s">60代</option>
+                    <option value="70s">70代</option>
+                    <option value="80s_plus">80代以上</option>
+                  </select>
+                </div>
 
-            {/* 年代 * */}
-            <div>
-              <label className="block text-xs sm:text-sm font-bold text-slate-900 mb-1.5">
-                年代 *
-              </label>
-              <select
-                value={age}
-                onChange={(e) => setAge(e.target.value)}
-                required
-                className="w-full px-3.5 py-2.5 bg-white rounded-xl border border-slate-300 text-xs sm:text-sm text-slate-800 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
-              >
-                <option value="">選択してください</option>
-                <option value="10s">10代 (高校生・学生)</option>
-                <option value="20s">20代</option>
-                <option value="30s">30代 (子育て世代)</option>
-                <option value="40s">40代</option>
-                <option value="50s">50代</option>
-                <option value="60s">60代 (シニア)</option>
-                <option value="70s">70代</option>
-                <option value="80s">80代以上</option>
-              </select>
-            </div>
+                <div className="sm:col-span-2">
+                  <label className="block text-sm font-bold text-slate-800 mb-2">居住地域・関わり <span className="text-rose-500">*</span></label>
+                  <select
+                    value={residency}
+                    onChange={(e) => setResidency(e.target.value)}
+                    required
+                    className="w-full px-3.5 py-2.5 bg-white rounded-xl border border-slate-300 text-sm text-slate-800 focus:ring-2 focus:ring-blue-500 outline-none"
+                  >
+                    <option value="">選択してください</option>
+                    <option value="yanai_student">柳井高校・柳井学園在校生（通学）</option>
+                    <option value="commuter">通勤者</option>
+                    <option value="downtown_resident">まちなか在住</option>
+                    <option value="suburban_resident">市内郊外在住</option>
+                    <option value="tourist_fan">観光客・関係人口・ファン</option>
+                  </select>
+                </div>
+              </div>
 
-          </div>
+              <div>
+                <label className="block text-sm font-bold text-slate-800 mb-2">提案の視点・分類 <span className="text-rose-500">*</span></label>
+                <select
+                  value={category}
+                  onChange={(e) => setCategory(e.target.value)}
+                  required
+                  className="w-full px-3.5 py-2.5 bg-white rounded-xl border border-slate-300 text-sm text-slate-800 focus:ring-2 focus:ring-blue-500 outline-none"
+                >
+                  <option value="">選択してください</option>
+                  <option value="living_infrastructure">【暮らし×課題解決】交通・インフラの改善</option>
+                  <option value="living_environment">【暮らし×課題解決】防犯・防災・居住環境の改善</option>
+                  <option value="living_community">【暮らし×価値創造】子育て・福祉・コミュニティの充実</option>
+                  <option value="bustle_landscape">【賑わい×課題解決】空き家・空き店舗の活用・景観保全</option>
+                  <option value="bustle_tourism">【賑わい×価値創造】観光・イベント・新たな魅力創出</option>
+                  <option value="other_concept">【その他】まちなか全体の仕組み・構想</option>
+                </select>
+              </div>
 
-          {/* Row 2: 対象プロジェクト * matching screenshot */}
-          <div>
-            <label className="block text-xs sm:text-sm font-bold text-slate-900 mb-1.5">
-              対象プロジェクト *
-            </label>
-            <select
-              value={targetProject}
-              onChange={(e) => setTargetProject(e.target.value)}
-              required
-              className="w-full px-3.5 py-2.5 bg-white rounded-xl border border-slate-300 text-xs sm:text-sm text-slate-800 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
-            >
-              <option value="">選択してください</option>
-              <option value="まちなか回遊改善">サンプル：まちなか回遊改善</option>
-              <option value="子育て支援アイデア募集">サンプル：子育て支援アイデア募集</option>
-              <option value="移動手段再編計画">サンプル：移動手段再編計画</option>
-              <option value="白壁景観・金魚ちょうちん保全">白壁景観・金魚ちょうちん保全</option>
-              <option value="その他・全体のまちづくり">その他・全体のまちづくり全般</option>
-            </select>
-          </div>
+              <div>
+                <label className="block text-sm font-bold text-slate-800 mb-2">対象の場所・エリア（任意）</label>
+                <input
+                  type="text"
+                  value={locationName}
+                  onChange={(e) => setLocationName(e.target.value)}
+                  placeholder="例: 白壁通り、駅前広場など"
+                  className="w-full px-3.5 py-2.5 bg-white rounded-xl border border-slate-300 text-sm text-slate-800 focus:ring-2 focus:ring-blue-500 outline-none"
+                />
+                <p className="text-[11px] text-slate-500 mt-1">※ まちなかの構想的なアイデアなど特定できない場合は空欄で構いません。概ねのエリア指定としてご入力ください。</p>
+              </div>
 
-          {/* Row 3: ご意見 * matching screenshot */}
-          <div>
-            <label className="block text-xs sm:text-sm font-bold text-slate-900 mb-1.5">
-              ご意見 *
-            </label>
-            <textarea
-              rows={4}
-              value={opinion}
-              onChange={(e) => setOpinion(e.target.value)}
-              required
-              placeholder="サンプル：駅前広場の使い方について提案します。ベンチや日陰スペースを増やして、高校生やお年寄りが安心して休憩できるようにしてほしいです。"
-              className="w-full px-3.5 py-3 bg-white rounded-xl border border-slate-300 text-xs sm:text-sm text-slate-800 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none leading-relaxed"
-            ></textarea>
-          </div>
+              <div>
+                <label className="block text-sm font-bold text-slate-800 mb-2">ご意見・アイデア詳細 <span className="text-rose-500">*</span></label>
+                <textarea
+                  value={opinion}
+                  onChange={(e) => setOpinion(e.target.value)}
+                  required
+                  rows={4}
+                  placeholder="具体的な困りごとや、「こんな場所があったらいいな」というアイデアを自由にお書きください。"
+                  className="w-full px-3.5 py-3 bg-white rounded-xl border border-slate-300 text-sm text-slate-800 focus:ring-2 focus:ring-blue-500 outline-none resize-y"
+                ></textarea>
+              </div>
 
-          {/* Submit Button matching screenshot */}
-          <div>
-            <button
-              type="submit"
-              className="px-6 py-3 rounded-xl font-bold text-sm bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-98"
-            >
-              <Send className="w-4 h-4" />
-              <span>投稿する</span>
-            </button>
-          </div>
-
-        </form>
+              <div className="pt-2">
+                <button
+                  type="submit"
+                  className="w-full sm:w-auto px-8 py-3.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold rounded-xl shadow-md transition-colors flex items-center justify-center gap-2 mx-auto"
+                >
+                  <Send className="w-4 h-4" />
+                  <span>この内容で送信する</span>
+                </button>
+              </div>
+            </form>
+          )}
+        </div>
       </div>
-
     </section>
   );
 };
