@@ -359,6 +359,49 @@ export default function App() {
     }
   };
 
+
+  // Helper to wrap sections with Admin Controls
+  const renderAdminWrapper = (sectionKey: FrontendSectionKey | 'hero' | 'town_map', title: string, content: React.ReactNode) => {
+    // hero and town_map cannot be hidden in this implementation
+    const isToggleable = sectionKey !== 'hero' && sectionKey !== 'town_map';
+    const isVisible = isToggleable ? toggles[sectionKey as FrontendSectionKey] : true;
+    
+    if (currentRole !== 'admin') {
+      return isVisible ? content : null;
+    }
+
+    // Admin View
+    return (
+      <div className="relative group">
+        <div className="absolute -top-4 right-4 z-50 p-2 bg-white rounded-lg shadow-md border border-slate-200 flex items-center gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
+          <span className="text-xs font-bold text-slate-600">{title}</span>
+          
+          {isToggleable && (
+            <button 
+              onClick={() => {
+                const newToggles = { ...toggles, [sectionKey]: !toggles[sectionKey as FrontendSectionKey] };
+                handleUpdateSettings({ ...systemSettings, frontendSectionToggles: newToggles });
+              }}
+              className={`p-1.5 rounded-md flex items-center gap-1 text-xs font-bold ${isVisible ? 'bg-blue-50 text-blue-700 hover:bg-blue-100' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}`}
+            >
+              {isVisible ? <><Eye className="w-3.5 h-3.5"/> 公開中</> : <><EyeOff className="w-3.5 h-3.5"/> 非公開</>}
+            </button>
+          )}
+
+          <button 
+            onClick={() => alert(`「${title}」のテキスト・画像編集機能は現在開発中（フェーズ2実装予定）です。`)}
+            className="p-1.5 rounded-md bg-emerald-50 text-emerald-700 hover:bg-emerald-100 flex items-center gap-1 text-xs font-bold"
+          >
+            <Edit3 className="w-3.5 h-3.5"/> 編集
+          </button>
+        </div>
+        <div className={`transition-all duration-300 ${!isVisible ? 'opacity-40 grayscale-[30%]' : ''}`}>
+          {content}
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col font-sans antialiased text-slate-900 selection:bg-blue-600 selection:text-white">
       
@@ -418,28 +461,20 @@ export default function App() {
                 .filter(item => item.enabled)
                 .map(item => {
                   switch (item.id) {
-                    case 'hero':
-                      return (
-                        <HeroSection
+                    case 'hero': return renderAdminWrapper('hero', 'トップ（Hero）', <HeroSection
                           key="hero"
                           onNavigateToProjects={() => setActiveTab('projects')}
                           onNavigateToIdeas={() => setActiveTab('submit_idea')}
                           onNavigateToRecruitment={() => setActiveTab('recruitment')}
                           activePocCount={pocProjects.filter(p => p.status === 'in_progress' || p.status === 'recruiting').length}
                           approvedSubmissionsCount={submissions.filter(s => s.status === 'approved' || s.status === 'reflected').length}
-                        />
-                      );
-                    case 'about':
-                      return toggles.about ? (
-                        <AboutSection
+                        />);
+                    case 'about': return renderAdminWrapper('about', 'このプラットフォームについて', <AboutSection
                           key="about"
                           onOpenSubmitModal={() => setIsSubmitModalOpen(true)}
                           onNavigateToProjects={() => setActiveTab('projects')}
-                        />
-                      ) : null;
-                    case 'projects':
-                      return toggles.projects ? (
-                        <PocProjectSection
+                        />);
+                    case 'projects': return renderAdminWrapper('projects', '重点実証実験プロジェクト', <PocProjectSection
                           key="projects"
                           projects={pocProjects}
                           currentRole={currentRole}
@@ -449,16 +484,12 @@ export default function App() {
                             setIsPocEditorOpen(true);
                           }}
                           onLikeProject={handleLikePocProject}
-                        />
-                      ) : null;
-                    case 'vision':
-                      return toggles.vision ? (
-                        <VisionVoteSection
+                        />);
+                    case 'vision': return renderAdminWrapper('vision', 'ビジョン共感投票', <VisionVoteSection
                           key="vision"
                           visionOptions={visionOptions}
                           onVoteVision={handleVoteVision}
-                        />
-                      ) : null;
+                        />);
                     case 'town_map':
                       return (
                         <InteractiveTownMap
@@ -484,9 +515,7 @@ export default function App() {
                           onAddNewLocationIdea={() => setIsSubmitModalOpen(true)}
                         />
                       );
-                    case 'recruitment':
-                      return toggles.recruitment ? (
-                        <RecruitmentSection
+                    case 'recruitment': return renderAdminWrapper('recruitment', 'イベント・WS募集', <RecruitmentSection
                           key="recruitment"
                           posts={recruitmentPosts}
                           onApply={handleApplyRecruitment}
@@ -496,8 +525,7 @@ export default function App() {
                             }
                           }}
                           isRecruiter={currentRole === 'recruiter' || currentRole === 'admin'}
-                        />
-                      ) : null;
+                        />);
                     case 'submit_idea':
                       return toggles.submit_idea ? (
                         <IdeaSubmissionSection
@@ -506,13 +534,10 @@ export default function App() {
                           submissionsCount={submissions.length}
                         />
                       ) : null;
-                    case 'citizen_dashboard':
-                      return toggles.citizen_dashboard ? (
-                        <CitizenDashboard
+                    case 'citizen_dashboard': return renderAdminWrapper('citizen_dashboard', '市民向け公開ダッシュボード', <CitizenDashboard
                           key="citizen_dashboard"
                           submissions={submissions}
-                        />
-                      ) : null;
+                        />);
                     default:
                       return null;
                   }
