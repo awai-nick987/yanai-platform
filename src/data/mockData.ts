@@ -790,14 +790,20 @@ export const INITIAL_SYSTEM_SETTINGS: SystemSettings = {
     progressTimeline: true
   },
   frontendSectionToggles: {
-    about: true,             // 柳井市まちなかまちづくりプロジェクトとは
-    projects: true,          // プロジェクト
-    vision: true,            // ビジョン投票
-    recruitment: true,       // 要員募集
-    submit_idea: true,       // 意見投稿
-    citizen_dashboard: true  // ダッシュボード
+    about: true,
+    projects: true,
+    vision: true,
+    recruitment: true,
+    submit_idea: true,
+    citizen_dashboard: true,
+    heroFloatingStats: true
+  },
+  heroCustomTexts: {
+    floatingSubTitle: "まちなか共創・進捗リアルタイム",
+    floatingMainTitle: "柳井市 夢プラン策定状況"
   }
 };
+
 
 export const FREQUENT_KEYWORDS = [
   { text: '白壁の町並み', count: 86, weight: 1.0, category: '景観・文化' },

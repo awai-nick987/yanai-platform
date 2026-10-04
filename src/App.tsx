@@ -110,6 +110,11 @@ export default function App() {
     return saved ? JSON.parse(saved) : INITIAL_SYSTEM_SETTINGS;
   });
 
+  useEffect(() => {
+    localStorage.setItem('yanai_system_settings', JSON.stringify(systemSettings));
+  }, [systemSettings]);
+
+
   const [pocProjects, setPocProjects] = useState<PocProject[]>(() => {
     const saved = localStorage.getItem('yanai_poc_projects');
     return saved ? JSON.parse(saved) : INITIAL_POC_PROJECTS;
@@ -468,6 +473,9 @@ export default function App() {
                           onNavigateToRecruitment={() => setActiveTab('recruitment')}
                           activePocCount={pocProjects.filter(p => p.status === 'in_progress' || p.status === 'recruiting').length}
                           approvedSubmissionsCount={submissions.filter(s => s.status === 'approved' || s.status === 'reflected').length}
+                          systemSettings={systemSettings}
+                          currentRole={currentRole}
+                          onUpdateSettings={setSystemSettings}
                         />);
                     case 'about': return renderAdminWrapper('about', 'このプラットフォームについて', <AboutSection
                           key="about"

@@ -373,6 +373,11 @@ export interface SystemSettings {
     recruitment: boolean;       // 要員募集
     submit_idea: boolean;       // 意見投稿
     citizen_dashboard: boolean; // ダッシュボード
+    heroFloatingStats: boolean; // ヒーローエリアのフローティング統計
+  };
+  heroCustomTexts: {
+    floatingSubTitle: string;
+    floatingMainTitle: string;
   };
 }
 

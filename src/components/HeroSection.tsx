@@ -1,4 +1,6 @@
 import React from 'react';
+import { SystemSettings, UserRole } from '../types';
+import { EyeOff, Eye, Edit3 } from 'lucide-react';
 import { Sparkles, MessageSquarePlus, BookOpen, Users, ArrowRight } from 'lucide-react';
 import heroBgImage from '../assets/images/yanai_shirakabe_street_1787402231236.jpg';
 
@@ -8,6 +10,9 @@ interface HeroSectionProps {
   onNavigateToRecruitment: () => void;
   activePocCount: number;
   approvedSubmissionsCount: number;
+  systemSettings?: SystemSettings;
+  currentRole?: UserRole;
+  onUpdateSettings?: (settings: SystemSettings) => void;
 }
 
 export const HeroSection: React.FC<HeroSectionProps> = ({
@@ -15,7 +20,10 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
   onNavigateToIdeas,
   onNavigateToRecruitment,
   activePocCount,
-  approvedSubmissionsCount
+  approvedSubmissionsCount,
+  systemSettings,
+  currentRole,
+  onUpdateSettings
 }) => {
   return (
     <div className="relative rounded-2xl sm:rounded-3xl overflow-hidden shadow-xl border border-slate-800/80 bg-slate-950 text-white flex items-center py-6 sm:py-10 md:py-14">
@@ -110,19 +118,72 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
           </div>
 
           {/* Right Column: Floating Stats Card */}
-          <div className="lg:col-span-5 flex justify-center lg:justify-end mt-2 lg:mt-0">
-            <div className="w-full max-w-md bg-white rounded-2xl sm:rounded-3xl shadow-2xl p-4 sm:p-6 text-slate-900 border border-slate-100 relative overflow-hidden backdrop-blur-xl">
+          <div className="lg:col-span-5 flex justify-center lg:justify-end mt-2 lg:mt-0 relative">
+            {(!systemSettings?.frontendSectionToggles?.heroFloatingStats && currentRole !== 'admin') ? null : (
+              <div className={`w-full max-w-md bg-white rounded-2xl sm:rounded-3xl shadow-2xl p-4 sm:p-6 text-slate-900 border border-slate-100 relative overflow-hidden backdrop-blur-xl ${!systemSettings?.frontendSectionToggles?.heroFloatingStats ? 'opacity-50' : ''}`}>
+                {currentRole === 'admin' && systemSettings && onUpdateSettings && (
+                  <div className="absolute top-2 right-2 z-50 flex gap-2">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onUpdateSettings({
+                          ...systemSettings,
+                          frontendSectionToggles: {
+                            ...systemSettings.frontendSectionToggles,
+                            heroFloatingStats: !systemSettings.frontendSectionToggles.heroFloatingStats
+                          }
+                        });
+                      }}
+                      className="p-1.5 bg-slate-900 text-white rounded-full shadow hover:bg-slate-800"
+                      title="表示/非表示"
+                    >
+                      {systemSettings.frontendSectionToggles.heroFloatingStats ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5 text-amber-300" />}
+                    </button>
+                  </div>
+                )}
+
               {/* Header Visual Bar */}
               <div className="h-20 sm:h-28 -mx-4 sm:-mx-6 -mt-4 sm:-mt-6 mb-4 sm:mb-5 bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-700 relative flex items-end p-4 sm:p-5 overflow-hidden">
                 {/* Visual Pattern Stripes */}
                 <div className="absolute inset-0 opacity-15 bg-[linear-gradient(45deg,#fff_25%,transparent_25%,transparent_50%,#fff_50%,#fff_75%,transparent_75%,transparent)] [background-size:16px_16px]"></div>
-                <div className="relative z-10 text-white">
-                  <div className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-emerald-100">
-                    まちなか共創・進捗リアルタイム
-                  </div>
-                  <div className="text-sm sm:text-base font-bold text-white mt-0.5">
-                    柳井市 夢プラン策定状況
-                  </div>
+                <div className="relative z-10 text-white w-full">
+                  {currentRole === 'admin' && systemSettings && onUpdateSettings ? (
+                    <div className="space-y-1 w-full pr-8">
+                      <input
+                        type="text"
+                        value={systemSettings.heroCustomTexts?.floatingSubTitle || ''}
+                        onChange={(e) => onUpdateSettings({
+                          ...systemSettings,
+                          heroCustomTexts: {
+                            ...systemSettings.heroCustomTexts,
+                            floatingSubTitle: e.target.value
+                          }
+                        })}
+                        className="bg-black/20 text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-emerald-100 px-2 py-1 rounded w-full border border-white/20 outline-none"
+                      />
+                      <input
+                        type="text"
+                        value={systemSettings.heroCustomTexts?.floatingMainTitle || ''}
+                        onChange={(e) => onUpdateSettings({
+                          ...systemSettings,
+                          heroCustomTexts: {
+                            ...systemSettings.heroCustomTexts,
+                            floatingMainTitle: e.target.value
+                          }
+                        })}
+                        className="bg-black/20 text-sm sm:text-base font-bold text-white px-2 py-1 rounded w-full border border-white/20 outline-none mt-1"
+                      />
+                    </div>
+                  ) : (
+                    <>
+                      <div className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-emerald-100">
+                        {systemSettings?.heroCustomTexts?.floatingSubTitle || "まちなか共創・進捗リアルタイム"}
+                      </div>
+                      <div className="text-sm sm:text-base font-bold text-white mt-0.5">
+                        {systemSettings?.heroCustomTexts?.floatingMainTitle || "柳井市 夢プラン策定状況"}
+                      </div>
+                    </>
+                  )}
                 </div>
               </div>
 
@@ -168,6 +229,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
                 </button>
               </div>
             </div>
+            )}
           </div>
 
         </div>
