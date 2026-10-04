@@ -112,7 +112,14 @@ export const WorkspaceRoadmap: React.FC = () => {
   const [selectedFiscalYear, setSelectedFiscalYear] = useState<'2025' | '2026' | '2027'>('2026');
   
   // Phases list state
-  const [phases, setPhases] = useState<PhaseItem[]>(INITIAL_PHASES);
+  const [phases, setPhases] = useState<PhaseItem[]>(() => {
+    const saved = localStorage.getItem('yanai_workspace_roadmap_phases');
+    return saved ? JSON.parse(saved) : INITIAL_PHASES;
+  });
+
+  React.useEffect(() => {
+    localStorage.setItem('yanai_workspace_roadmap_phases', JSON.stringify(phases));
+  }, [phases]);
 
   // Selected phase for detail modal
   const [selectedPhaseDetail, setSelectedPhaseDetail] = useState<PhaseItem | null>(null);
