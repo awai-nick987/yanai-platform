@@ -36,30 +36,42 @@ export const WorkspaceDrive: React.FC<WorkspaceDriveProps> = ({ currentRole = 'a
     }, 600);
   };
 
-  const DRIVE_FOLDERS = [
+    const DRIVE_FILES = [
     {
-      name: '01_活性化協議会・策定委員会資料',
-      count: '14ファイル',
-      updated: '2026-09-08',
-      desc: '第1回〜第3回 協議会議事録、策定骨子案、委員提出意見シート'
+      name: '01_次第.pdf',
+      type: 'PDF',
+      updated: '2026-09-04',
+      desc: '会議・ワークショップ等の式次第・進行表'
     },
     {
-      name: '02_実証実験 (PoC) 実行計画・資材一覧',
-      count: '8ファイル',
-      updated: '2026-09-12',
-      desc: '白壁夜市・高校生カフェ・シェアモビリティ実施計画書、道路占用許可申請書'
+      name: '02-1_自治会アンケート配布事前周知文書.pdf',
+      type: 'PDF',
+      updated: '2026-09-04',
+      desc: '自治会を通じたアンケート配布の事前告知文書'
     },
     {
-      name: '03_市民・高校生ワークショップ原本データ',
-      count: '23ファイル',
-      updated: '2026-09-10',
-      desc: 'WS付箋写真・スキャンPDF、文字起こしテキスト、カテゴリ集計シート'
+      name: '02-2_自治会アンケート配布文書.pdf',
+      type: 'PDF',
+      updated: '2026-09-04',
+      desc: 'アンケート本紙の配布依頼・回覧用文書'
     },
     {
-      name: '04_写真・広報素材・ロゴデータ',
-      count: '45ファイル',
-      updated: '2026-09-05',
-      desc: '白壁の町並み高解像度写真、金魚ちょうちんベクター素材、広報チラシ'
+      name: '03_260904_まちなかアンケート（案）.pdf',
+      type: 'PDF',
+      updated: '2026-09-04',
+      desc: '柳井市まちなか未来計画 アンケート用紙（案）'
+    },
+    {
+      name: '04_アンケート区分.pdf',
+      type: 'PDF',
+      updated: '2026-09-04',
+      desc: 'アンケートの集計区分やターゲット設定に関する資料'
+    },
+    {
+      name: '05_組織体制案.pdf',
+      type: 'PDF',
+      updated: '2026-09-04',
+      desc: '今後の推進組織・実行委員会の体制案'
     }
   ];
 
@@ -125,39 +137,39 @@ export const WorkspaceDrive: React.FC<WorkspaceDriveProps> = ({ currentRole = 'a
 
       {/* Folder Structure Preview */}
       <div className="space-y-3">
-        <h3 className="text-xs font-bold text-slate-700 uppercase tracking-wider">
-          共有ドライブ フォルダ構成
+                <h3 className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+          共有ドライブ ファイル構成
         </h3>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-          {DRIVE_FOLDERS.map((folder, i) => (
+          {DRIVE_FILES.map((file, i) => (
             <a
               key={i}
               href={SHARED_DRIVE_URL}
               target="_blank"
               rel="noopener noreferrer"
-              className="p-4 bg-slate-50 hover:bg-white rounded-2xl border border-slate-200 hover:border-indigo-300 transition-all space-y-2 group shadow-2xs block"
+              className="p-4 bg-slate-50 hover:bg-white rounded-2xl border border-slate-200 hover:indigo-300 transition-all space-y-2 group shadow-2xs block"
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <FolderOpen className="w-4 h-4 text-amber-500 group-hover:scale-110 transition-transform" />
-                  <span className="text-xs font-bold text-slate-900 group-hover:text-indigo-600 transition-colors">
-                    {folder.name}
+                  <FileText className="w-4 h-4 text-rose-500 group-hover:scale-110 transition-transform" />
+                  <span className="text-xs font-bold text-slate-900 group-hover:text-indigo-600 transition-colors truncate max-w-[200px]" title={file.name}>
+                    {file.name}
                   </span>
                 </div>
-                <span className="text-[10px] bg-slate-200 text-slate-700 px-2 py-0.5 rounded-md font-mono font-bold">
-                  {folder.count}
+                <span className="text-[10px] bg-rose-100 text-rose-700 px-2 py-0.5 rounded-md font-mono font-bold shrink-0">
+                  {file.type}
                 </span>
               </div>
 
-              <p className="text-xs text-slate-600 pl-6">
-                {folder.desc}
+              <p className="text-xs text-slate-600 pl-6 line-clamp-2">
+                {file.desc}
               </p>
 
               <div className="flex items-center justify-between text-[10px] text-slate-400 pl-6 pt-1">
-                <span>最終更新: {folder.updated}</span>
+                <span>最終更新: {file.updated}</span>
                 <span className="text-indigo-600 font-bold group-hover:underline flex items-center gap-0.5">
-                  ドライブで確認 <ExternalLink className="w-2.5 h-2.5" />
+                  ドライブで開く <ExternalLink className="w-2.5 h-2.5" />
                 </span>
               </div>
             </a>
