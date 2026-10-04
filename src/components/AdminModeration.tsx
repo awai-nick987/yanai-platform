@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { IdeaSubmission, SystemSettings, CMSArticle, FrontendSectionKey, TeamMember, UserRole, WorkspaceTask } from '../types';
 import { 
   ShieldCheck, 
-  CheckCircle2, 
+  CheckCircle2,
+  Trash2, 
   XCircle, 
   AlertTriangle, 
   Eye, 
@@ -31,6 +32,7 @@ import { WorkshopDataImporter } from './WorkshopDataImporter';
 interface AdminModerationProps {
   submissions: IdeaSubmission[];
   onUpdateStatus: (id: string, newStatus: IdeaSubmission['status']) => void;
+  onDeleteSubmission?: (id: string) => void;
   systemSettings: SystemSettings;
   onUpdateSettings: (newSettings: SystemSettings) => void;
   cmsArticles: CMSArticle[];
@@ -48,6 +50,7 @@ interface AdminModerationProps {
 export const AdminModeration: React.FC<AdminModerationProps> = ({
   submissions,
   onUpdateStatus,
+  onDeleteSubmission,
   systemSettings,
   onUpdateSettings,
   cmsArticles,

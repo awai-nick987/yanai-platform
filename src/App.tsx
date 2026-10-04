@@ -145,7 +145,18 @@ export default function App() {
       if (data.length > 0) setVisionOptions(data);
     });
     
-    return () => {
+  
+  const handleDeleteSubmission = async (id: string) => {
+    if (!window.confirm('この投稿を本当に削除してもよろしいですか？（この操作は取り消せません）')) return;
+    try {
+      await deleteSubmissionFromDb(id);
+    } catch (e) {
+      console.error(e);
+      alert('削除に失敗しました');
+    }
+  };
+
+  return () => {
       unsubSub();
       unsubVis();
     };
@@ -348,6 +359,17 @@ export default function App() {
     citizen_dashboard: true
   };
 
+
+  const handleDeleteSubmission = async (id: string) => {
+    if (!window.confirm('この投稿を本当に削除してもよろしいですか？（この操作は取り消せません）')) return;
+    try {
+      await deleteSubmissionFromDb(id);
+    } catch (e) {
+      console.error(e);
+      alert('削除に失敗しました');
+    }
+  };
+
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col font-sans antialiased text-slate-900 selection:bg-blue-600 selection:text-white">
       
@@ -408,7 +430,18 @@ export default function App() {
                 .map(item => {
                   switch (item.id) {
                     case 'hero':
-                      return (
+                    
+  const handleDeleteSubmission = async (id: string) => {
+    if (!window.confirm('この投稿を本当に削除してもよろしいですか？（この操作は取り消せません）')) return;
+    try {
+      await deleteSubmissionFromDb(id);
+    } catch (e) {
+      console.error(e);
+      alert('削除に失敗しました');
+    }
+  };
+
+  return (
                         <HeroSection
                           key="hero"
                           onNavigateToProjects={() => setActiveTab('projects')}
@@ -449,7 +482,18 @@ export default function App() {
                         />
                       ) : null;
                     case 'town_map':
-                      return (
+                    
+  const handleDeleteSubmission = async (id: string) => {
+    if (!window.confirm('この投稿を本当に削除してもよろしいですか？（この操作は取り消せません）')) return;
+    try {
+      await deleteSubmissionFromDb(id);
+    } catch (e) {
+      console.error(e);
+      alert('削除に失敗しました');
+    }
+  };
+
+  return (
                         <InteractiveTownMap
                           key="town_map"
                           submissions={submissions}

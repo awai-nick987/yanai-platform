@@ -105,6 +105,7 @@ export const WorkspaceKanban: React.FC<WorkspaceKanbanProps> = ({
   onAddMember,
   onDeleteMember,
   onUpdateSubmissionStatus,
+  onDeleteSubmission,
   recruitmentPosts = [],
   onCreateRecruitmentPost,
   onImportSubmissions,
