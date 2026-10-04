@@ -118,19 +118,19 @@ export const WorkspaceKanban: React.FC<WorkspaceKanbanProps> = ({
   const [activeMenu, setActiveMenu] = useState<WorkspaceMenuKey>('roadmap');
 
   return (
-    <div className="flex h-[calc(100vh-64px)] overflow-hidden bg-[#0d2137]">
+    <div className="flex h-[calc(100vh-64px)] overflow-hidden bg-white">
       
       {/* ------------------------------------------------------------- */}
       {/* LEFT SIDEBAR (Desktop only - Dark Navy Background #0d2137)   */}
       {/* ------------------------------------------------------------- */}
-      <aside className="hidden lg:flex w-64 bg-[#0d2137] text-slate-200 flex-col shrink-0 border-r border-[#1a3556] select-none">
+      <aside className="hidden lg:flex w-64 bg-slate-50 text-slate-700 flex-col shrink-0 border-r border-slate-200 select-none">
         
         {/* Workspace Brand Logo */}
-        <div className="p-4 flex items-center gap-3 border-b border-[#1a3556]">
+        <div className="p-4 flex items-center gap-3 border-b border-slate-200">
           <div className="w-6 h-6 rounded-full border-2 border-emerald-400 flex items-center justify-center shrink-0">
             <div className="w-2.5 h-2.5 rounded-full bg-emerald-400"></div>
           </div>
-          <span className="font-bold text-white text-sm tracking-tight leading-tight">
+          <span className="font-bold text-slate-900 text-sm tracking-tight leading-tight">
             柳井市まちなか共創<br />プラットフォーム
           </span>
         </div>
@@ -155,6 +155,21 @@ export const WorkspaceKanban: React.FC<WorkspaceKanbanProps> = ({
                 <BarChart3 className="w-4 h-4 text-emerald-400" />
                 <span>ダッシュボード</span>
               </button>
+
+              <button
+                onClick={() => setActiveMenu('integrated_analysis')}
+                className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
+                  activeMenu === 'integrated_analysis'
+                    ? 'bg-blue-600 text-white shadow-xs'
+                    : 'text-slate-600 hover:bg-slate-200 hover:text-slate-900'
+                }`}
+              >
+                <div className={`p-1.5 rounded-md ${activeMenu === 'integrated_analysis' ? 'bg-blue-500/30 text-white' : 'bg-slate-200 text-slate-600'}`}>
+                  <Sparkles className="w-3.5 h-3.5" />
+                </div>
+                コンセプトブック統合AI
+              </button>
+
 
               <button
                 onClick={() => setActiveMenu('tasks')}
@@ -407,9 +422,10 @@ export const WorkspaceKanban: React.FC<WorkspaceKanbanProps> = ({
       <main className="flex-1 overflow-y-auto bg-slate-100 flex flex-col">
         
         {/* Mobile / Tablet Horizontal Navigation Tabs */}
-        <div className="lg:hidden bg-[#0d2137] text-white p-2.5 flex items-center gap-2 overflow-x-auto border-b border-[#1a3556] shrink-0">
+        <div className="lg:hidden bg-white p-2.5 flex items-center gap-2 overflow-x-auto border-b border-slate-200 shrink-0 shadow-sm">
           {[
             { key: 'dashboard', label: 'ダッシュボード', icon: BarChart3 },
+            { key: 'integrated_analysis', label: '統合AI', icon: Sparkles },
             { key: 'tasks', label: 'タスク管理', icon: ClipboardList },
             { key: 'calendar', label: 'カレンダー', icon: CalendarIcon },
             { key: 'chat', label: '協働チャット', icon: MessageSquare },
@@ -426,7 +442,7 @@ export const WorkspaceKanban: React.FC<WorkspaceKanbanProps> = ({
                 className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap flex items-center gap-1.5 transition-all ${
                   activeMenu === tab.key
                     ? 'bg-blue-600 text-white shadow-xs'
-                    : 'text-slate-300 hover:bg-slate-800'
+                    : 'text-slate-600 hover:bg-slate-200 hover:text-slate-900'
                 }`}
               >
                 <Icon className="w-3.5 h-3.5" />

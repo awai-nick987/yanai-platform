@@ -160,7 +160,18 @@ export const WorkspaceRoadmap: React.FC = () => {
     setIsEditModalOpen(true);
   };
 
+
+  const handleDeletePhase = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (!editingPhase) return;
+    if (window.confirm(`${editingPhase.title} を削除してもよろしいですか？`)) {
+      setPhases(phases.filter(p => p.id !== editingPhase.id));
+      setIsEditModalOpen(false);
+    }
+  };
+
   const handleSavePhase = (e: React.FormEvent) => {
+
     e.preventDefault();
     if (!modalTitle.trim()) return;
 
@@ -688,20 +699,33 @@ export const WorkspaceRoadmap: React.FC = () => {
                 </div>
               </div>
 
-              <div className="flex justify-end gap-2 pt-3 border-t border-slate-100">
-                <button
-                  type="button"
-                  onClick={() => setIsEditModalOpen(false)}
-                  className="px-4 py-2 text-xs text-slate-600 hover:bg-slate-100 rounded-xl"
-                >
-                  キャンセル
-                </button>
-                <button
-                  type="submit"
-                  className="px-5 py-2 bg-indigo-900 hover:bg-indigo-950 text-white text-xs font-bold rounded-xl shadow-xs"
-                >
-                  保存する
-                </button>
+              <div className="flex justify-between items-center gap-2 pt-3 border-t border-slate-100">
+                {editingPhase ? (
+                  <button
+                    type="button"
+                    onClick={handleDeletePhase}
+                    className="px-4 py-2 text-xs text-rose-600 hover:bg-rose-50 rounded-xl font-bold"
+                  >
+                    削除
+                  </button>
+                ) : (
+                  <div />
+                )}
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setIsEditModalOpen(false)}
+                    className="px-4 py-2 text-xs text-slate-600 hover:bg-slate-100 rounded-xl"
+                  >
+                    キャンセル
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-5 py-2 bg-indigo-900 hover:bg-indigo-950 text-white text-xs font-bold rounded-xl shadow-xs"
+                  >
+                    保存する
+                  </button>
+                </div>
               </div>
             </form>
           </div>
