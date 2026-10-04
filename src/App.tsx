@@ -357,6 +357,7 @@ export default function App() {
   const handleDeleteSubmission = async (id: string) => {
     if (!window.confirm('この投稿を本当に削除してもよろしいですか？（この操作は取り消せません）')) return;
     try {
+      setSubmissions(prev => prev.filter(s => s.id !== id));
       await deleteSubmissionFromDb(id);
     } catch (e) {
       console.error(e);
