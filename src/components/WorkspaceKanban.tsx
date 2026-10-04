@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { IdeaSubmission, SystemSettings, CMSArticle, TeamMember, UserRole, WorkspaceTask, RecruitmentPost } from '../types';
 import { 
-  BarChart3, 
+  BarChart3, Layers, 
   ClipboardList, 
   Calendar as CalendarIcon, 
   MessageSquare, 
@@ -34,6 +34,7 @@ import { AdminModeration } from './AdminModeration';
 import { UserRoleManagement } from './UserRoleManagement';
 import { RecruitmentAdmin } from './RecruitmentAdmin';
 import { SurveyApp } from './survey/SurveyApp';
+import { IntegratedAnalysis } from './workspace/IntegratedAnalysis';
 import { WorkshopDataImporter } from './WorkshopDataImporter';
 import { WorkspaceDashboard } from './workspace/WorkspaceDashboard';
 import { WorkspaceTasks } from './workspace/WorkspaceTasks';
@@ -76,6 +77,7 @@ type WorkspaceMenuKey =
   | 'roadmap'
   | 'drive'
   | 'survey'
+  | 'integrated_analysis'
   | 'ws_import'
   | 'admin_portal'
   | 'user_roles'
