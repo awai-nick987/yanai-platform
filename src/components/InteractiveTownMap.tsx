@@ -25,6 +25,8 @@ import {
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
+import { UserRole } from '../types';
+
 interface InteractiveTownMapProps {
   submissions?: IdeaSubmission[];
   onVote?: (id: string, type: 'up' | 'down') => void;
@@ -32,6 +34,8 @@ interface InteractiveTownMapProps {
   onSelectSubmission?: (submission: IdeaSubmission) => void;
   onOpenSubmitWithCoords?: (lat: number, lng: number, locationName: string) => void;
   onAddNewLocationIdea?: () => void;
+  currentRole?: UserRole;
+  onDeleteSubmission?: (id: string) => void;
 }
 
 // Yanai City Center Coordinates (Between Shirakabe Street & JR Yanai Station)

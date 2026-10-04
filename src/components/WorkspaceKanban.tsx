@@ -148,8 +148,8 @@ export const WorkspaceKanban: React.FC<WorkspaceKanbanProps> = ({
                 onClick={() => setActiveMenu('dashboard')}
                 className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
                   activeMenu === 'dashboard'
-                    ? 'bg-[#1b3d63] text-white font-bold'
-                    : 'text-slate-300 hover:bg-[#152e4d] hover:text-white'
+                    ? 'bg-[#1b3d63] text-white font-bold shadow-xs'
+                    : 'text-slate-700 hover:bg-slate-200 hover:text-slate-900'
                 }`}
               >
                 <BarChart3 className="w-4 h-4 text-emerald-400" />
@@ -175,8 +175,8 @@ export const WorkspaceKanban: React.FC<WorkspaceKanbanProps> = ({
                 onClick={() => setActiveMenu('tasks')}
                 className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
                   activeMenu === 'tasks'
-                    ? 'bg-[#1b3d63] text-white font-bold'
-                    : 'text-slate-300 hover:bg-[#152e4d] hover:text-white'
+                    ? 'bg-[#1b3d63] text-white font-bold shadow-xs'
+                    : 'text-slate-700 hover:bg-slate-200 hover:text-slate-900'
                 }`}
               >
                 <ClipboardList className="w-4 h-4 text-amber-400" />
@@ -187,8 +187,8 @@ export const WorkspaceKanban: React.FC<WorkspaceKanbanProps> = ({
                 onClick={() => setActiveMenu('calendar')}
                 className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
                   activeMenu === 'calendar'
-                    ? 'bg-[#1b3d63] text-white font-bold'
-                    : 'text-slate-300 hover:bg-[#152e4d] hover:text-white'
+                    ? 'bg-[#1b3d63] text-white font-bold shadow-xs'
+                    : 'text-slate-700 hover:bg-slate-200 hover:text-slate-900'
                 }`}
               >
                 <CalendarIcon className="w-4 h-4 text-rose-400" />
@@ -207,8 +207,8 @@ export const WorkspaceKanban: React.FC<WorkspaceKanbanProps> = ({
                 onClick={() => setActiveMenu('chat')}
                 className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
                   activeMenu === 'chat'
-                    ? 'bg-[#1b3d63] text-white font-bold'
-                    : 'text-slate-300 hover:bg-[#152e4d] hover:text-white'
+                    ? 'bg-[#1b3d63] text-white font-bold shadow-xs'
+                    : 'text-slate-700 hover:bg-slate-200 hover:text-slate-900'
                 }`}
               >
                 <MessageSquare className="w-4 h-4 text-sky-400" />
@@ -219,8 +219,8 @@ export const WorkspaceKanban: React.FC<WorkspaceKanbanProps> = ({
                 onClick={() => setActiveMenu('roadmap')}
                 className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
                   activeMenu === 'roadmap'
-                    ? 'bg-[#1b3d63] text-white font-bold shadow-xs'
-                    : 'text-slate-300 hover:bg-[#152e4d] hover:text-white'
+                    ? 'bg-[#1b3d63] text-white font-bold shadow-xs shadow-xs'
+                    : 'text-slate-700 hover:bg-slate-200 hover:text-slate-900'
                 }`}
               >
                 <Pin className="w-4 h-4 text-rose-500" />
@@ -231,8 +231,8 @@ export const WorkspaceKanban: React.FC<WorkspaceKanbanProps> = ({
                 onClick={() => setActiveMenu('drive')}
                 className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
                   activeMenu === 'drive'
-                    ? 'bg-[#1b3d63] text-white font-bold'
-                    : 'text-slate-300 hover:bg-[#152e4d] hover:text-white'
+                    ? 'bg-[#1b3d63] text-white font-bold shadow-xs'
+                    : 'text-slate-700 hover:bg-slate-200 hover:text-slate-900'
                 }`}
               >
                 <FolderGit2 className="w-4 h-4 text-indigo-400" />
@@ -243,8 +243,8 @@ export const WorkspaceKanban: React.FC<WorkspaceKanbanProps> = ({
                 onClick={() => setActiveMenu('survey')}
                 className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
                   activeMenu === 'survey'
-                    ? 'bg-[#1b3d63] text-white font-bold'
-                    : 'text-slate-300 hover:bg-[#152e4d] hover:text-white'
+                    ? 'bg-[#1b3d63] text-white font-bold shadow-xs'
+                    : 'text-slate-700 hover:bg-slate-200 hover:text-slate-900'
                 }`}
               >
                 <BarChart3 className="w-4 h-4 text-indigo-400" />
@@ -256,7 +256,7 @@ export const WorkspaceKanban: React.FC<WorkspaceKanbanProps> = ({
                 className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
                   activeMenu === 'ws_import'
                     ? 'bg-blue-600 text-white font-bold shadow-xs'
-                    : 'text-slate-300 hover:bg-[#152e4d] hover:text-white'
+                    : 'text-slate-700 hover:bg-slate-200 hover:text-slate-900'
                 }`}
               >
                 <UploadCloud className="w-4 h-4 text-emerald-400" />
@@ -286,7 +286,7 @@ export const WorkspaceKanban: React.FC<WorkspaceKanbanProps> = ({
                     className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
                       activeMenu === 'admin_portal'
                         ? 'bg-rose-950/70 text-rose-100 border border-rose-800/80 font-bold'
-                        : 'text-slate-300 hover:bg-[#152e4d] hover:text-white'
+                        : 'text-slate-700 hover:bg-slate-200 hover:text-slate-900'
                     }`}
                   >
                     <ShieldCheck className="w-4 h-4 text-rose-400 shrink-0" />
@@ -301,7 +301,7 @@ export const WorkspaceKanban: React.FC<WorkspaceKanbanProps> = ({
                     className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
                       activeMenu === 'user_roles'
                         ? 'bg-indigo-950/70 text-indigo-100 border border-indigo-800/80 font-bold'
-                        : 'text-slate-300 hover:bg-[#152e4d] hover:text-white'
+                        : 'text-slate-700 hover:bg-slate-200 hover:text-slate-900'
                     }`}
                   >
                     <Users className="w-4 h-4 text-indigo-400 shrink-0" />
@@ -321,7 +321,7 @@ export const WorkspaceKanban: React.FC<WorkspaceKanbanProps> = ({
                     className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
                       activeMenu === 'recruitment_mgmt'
                         ? 'bg-emerald-950/70 text-emerald-100 border border-emerald-800/80 font-bold'
-                        : 'text-slate-300 hover:bg-[#152e4d] hover:text-white'
+                        : 'text-slate-700 hover:bg-slate-200 hover:text-slate-900'
                     }`}
                   >
                     <UserCheck className="w-4 h-4 text-emerald-400 shrink-0" />
@@ -343,8 +343,8 @@ export const WorkspaceKanban: React.FC<WorkspaceKanbanProps> = ({
                 onClick={() => setActiveMenu('settings')}
                 className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
                   activeMenu === 'settings'
-                    ? 'bg-[#1b3d63] text-white font-bold'
-                    : 'text-slate-300 hover:bg-[#152e4d] hover:text-white'
+                    ? 'bg-[#1b3d63] text-white font-bold shadow-xs'
+                    : 'text-slate-700 hover:bg-slate-200 hover:text-slate-900'
                 }`}
               >
                 <Settings className="w-4 h-4 text-slate-400" />
@@ -355,8 +355,8 @@ export const WorkspaceKanban: React.FC<WorkspaceKanbanProps> = ({
                 onClick={() => setActiveMenu('google_sites')}
                 className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
                   activeMenu === 'google_sites'
-                    ? 'bg-[#1b3d63] text-white font-bold'
-                    : 'text-slate-300 hover:bg-[#152e4d] hover:text-white'
+                    ? 'bg-[#1b3d63] text-white font-bold shadow-xs'
+                    : 'text-slate-700 hover:bg-slate-200 hover:text-slate-900'
                 }`}
               >
                 <Globe className="w-4 h-4 text-teal-400" />
@@ -372,7 +372,7 @@ export const WorkspaceKanban: React.FC<WorkspaceKanbanProps> = ({
                     onSwitchRole(nextRole);
                   }
                 }}
-                className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-[#152e4d] hover:text-white transition-colors cursor-pointer"
+                className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium text-slate-700 hover:bg-slate-200 hover:text-slate-900 transition-colors cursor-pointer"
               >
                 <KeyRound className="w-4 h-4 text-yellow-400" />
                 <div className="flex items-center justify-between flex-1">
