@@ -480,6 +480,44 @@ export function splitMultiAnswers(text: string): string[] {
 }
 
 // Normalize Survey Rows with mapping, converting Q5/7/8 numbers to text & splitting Q6 facilities
+
+// Helper to extract grid answers (e.g. from Google Forms multiple choice grid)
+function getGridAnswers(startIndex: number, row: string[], headers: string[], choicesMapping?: Record<number, string>): string[] {
+  if (startIndex < 0 || startIndex >= headers.length) return [];
+  
+  const startHeader = headers[startIndex] || "";
+  
+  // If it's not a grid column (no bracket), fallback to original behavior
+  if (!startHeader.includes('[')) {
+    const raw = startIndex >= 0 && startIndex < row.length ? (row[startIndex] || "").trim() : "";
+    if (!choicesMapping) return [raw];
+    return splitNumberMappedAnswers(raw, choicesMapping);
+  }
+
+  // It's a grid column! Extract all contiguous columns with the same base question
+  const baseText = startHeader.split('[')[0].trim();
+  const results: string[] = [];
+  
+  for (let i = startIndex; i < headers.length; i++) {
+    if (headers[i].startsWith(baseText) && headers[i].includes('[')) {
+      const val = (row[i] || "").trim();
+      // If respondent selected it (e.g., "1位", "〇"), we include the option name from the header
+      if (val && val !== "-" && val !== "特になし") {
+        const match = headers[i].match(/\[(.*?)\]/);
+        if (match && match[1]) {
+          results.push(match[1].trim());
+        } else {
+          results.push(val);
+        }
+      }
+    } else {
+      // Contiguous block ended
+      break;
+    }
+  }
+  return results;
+}
+
 export function buildSurveyRows(
   headers: string[],
   rows: string[][],
@@ -500,11 +538,12 @@ export function buildSurveyRows(
       q2_gender: cleanOptionValue(getCol(mapping.q2)) || "回答なし",
       q3_age: cleanOptionValue(getCol(mapping.q3)) || "不明",
       q4_household: cleanOptionValue(getCol(mapping.q4)) || "未回答",
-      q5_pride: splitNumberMappedAnswers(getCol(mapping.q5), Q5_PRIDE_CHOICES),
+      q5_pride: getGridAnswers(mapping.q5, r, headers, Q5_PRIDE_CHOICES),
       q6_facilities: splitFacilityAnswers(getCol(mapping.q6)),
-      q7_worry: splitNumberMappedAnswers(getCol(mapping.q7), Q7_WORRY_CHOICES),
-      q8_hope: splitNumberMappedAnswers(getCol(mapping.q8), Q8_HOPE_CHOICES),
+      q7_worry: getGridAnswers(mapping.q7, r, headers, Q7_WORRY_CHOICES),
+      q8_hope: getGridAnswers(mapping.q8, r, headers, Q8_HOPE_CHOICES),
       q9_opinion: getCol(mapping.q9),
     };
   });
 }
+
