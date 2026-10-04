@@ -145,18 +145,7 @@ export default function App() {
       if (data.length > 0) setVisionOptions(data);
     });
     
-  
-  const handleDeleteSubmission = async (id: string) => {
-    if (!window.confirm('この投稿を本当に削除してもよろしいですか？（この操作は取り消せません）')) return;
-    try {
-      await deleteSubmissionFromDb(id);
-    } catch (e) {
-      console.error(e);
-      alert('削除に失敗しました');
-    }
-  };
-
-  return () => {
+    return () => {
       unsubSub();
       unsubVis();
     };
@@ -430,18 +419,7 @@ export default function App() {
                 .map(item => {
                   switch (item.id) {
                     case 'hero':
-                    
-  const handleDeleteSubmission = async (id: string) => {
-    if (!window.confirm('この投稿を本当に削除してもよろしいですか？（この操作は取り消せません）')) return;
-    try {
-      await deleteSubmissionFromDb(id);
-    } catch (e) {
-      console.error(e);
-      alert('削除に失敗しました');
-    }
-  };
-
-  return (
+                      return (
                         <HeroSection
                           key="hero"
                           onNavigateToProjects={() => setActiveTab('projects')}
@@ -482,18 +460,7 @@ export default function App() {
                         />
                       ) : null;
                     case 'town_map':
-                    
-  const handleDeleteSubmission = async (id: string) => {
-    if (!window.confirm('この投稿を本当に削除してもよろしいですか？（この操作は取り消せません）')) return;
-    try {
-      await deleteSubmissionFromDb(id);
-    } catch (e) {
-      console.error(e);
-      alert('削除に失敗しました');
-    }
-  };
-
-  return (
+                      return (
                         <InteractiveTownMap
                           key="town_map"
                           submissions={submissions}
