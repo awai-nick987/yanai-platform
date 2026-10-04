@@ -711,7 +711,7 @@ export function SurveyApp() {
             {/* Municipal Highlight Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4">
               {/* Card 1: Total Responses */}
-              <div className="bg-white p-4 sm:p-5 rounded-xl border border-slate-200/90 shadow-2xs flex items-center justify-between">
+              <div className="bg-white p-4 sm:p-5 rounded-xl border border-slate-200/90 shadow-2xs flex items-start justify-between h-full">
                 <div>
                   <span className="text-xs font-semibold text-slate-500 block mb-0.5">
                     有効回答サンプル数
@@ -730,58 +730,58 @@ export function SurveyApp() {
               </div>
 
               {/* Card 2: Top Pride */}
-              <div className="bg-white p-4 sm:p-5 rounded-xl border border-slate-200/90 shadow-2xs flex items-center justify-between">
+              <div className="bg-white p-4 sm:p-5 rounded-xl border border-slate-200/90 shadow-2xs flex items-start justify-between h-full">
                 <div className="min-w-0 pr-2">
                   <span className="text-xs font-semibold text-emerald-600 flex items-center gap-1 mb-0.5">
                     <Heart className="w-3.5 h-3.5" />
                     自慢・強み No.1
                   </span>
-                  <div className="text-base sm:text-lg font-bold text-slate-900 truncate" title={topPrideItem?.name}>
+                  <div className="text-sm sm:text-base font-bold text-slate-900 leading-snug break-words" title={topPrideItem?.name}>
                     {topPrideItem?.name || "なし"}
                   </div>
                   <span className="text-[11px] text-slate-500 mt-1 block">
                     得票率: <strong className="text-emerald-600 font-bold">{prideRate}%</strong> ({topPrideItem?.count || 0}票)
                   </span>
                 </div>
-                <div className="w-11 h-11 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+                <div className="w-11 h-11 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 mt-0.5">
                   <Sparkles className="w-5 h-5" />
                 </div>
               </div>
 
               {/* Card 3: Top Worry */}
-              <div className="bg-white p-4 sm:p-5 rounded-xl border border-slate-200/90 shadow-2xs flex items-center justify-between">
+              <div className="bg-white p-4 sm:p-5 rounded-xl border border-slate-200/90 shadow-2xs flex items-start justify-between h-full">
                 <div className="min-w-0 pr-2">
                   <span className="text-xs font-semibold text-rose-600 flex items-center gap-1 mb-0.5">
                     <AlertTriangle className="w-3.5 h-3.5" />
                     最大の不安・課題 No.1
                   </span>
-                  <div className="text-base sm:text-lg font-bold text-slate-900 truncate" title={topWorryItem?.name}>
+                  <div className="text-sm sm:text-base font-bold text-slate-900 leading-snug break-words" title={topWorryItem?.name}>
                     {topWorryItem?.name || "なし"}
                   </div>
                   <span className="text-[11px] text-slate-500 mt-1 block">
                     懸念率: <strong className="text-rose-600 font-bold">{worryRate}%</strong> ({topWorryItem?.count || 0}票)
                   </span>
                 </div>
-                <div className="w-11 h-11 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center shrink-0">
+                <div className="w-11 h-11 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center shrink-0 mt-0.5">
                   <TrendingUp className="w-5 h-5" />
                 </div>
               </div>
 
               {/* Card 4: Top Hope */}
-              <div className="bg-white p-4 sm:p-5 rounded-xl border border-slate-200/90 shadow-2xs flex items-center justify-between">
+              <div className="bg-white p-4 sm:p-5 rounded-xl border border-slate-200/90 shadow-2xs flex items-start justify-between h-full">
                 <div className="min-w-0 pr-2">
                   <span className="text-xs font-semibold text-indigo-600 flex items-center gap-1 mb-0.5">
                     <Lightbulb className="w-3.5 h-3.5" />
                     住民の期待・要望 No.1
                   </span>
-                  <div className="text-base sm:text-lg font-bold text-slate-900 truncate" title={topHopeItem?.name}>
+                  <div className="text-sm sm:text-base font-bold text-slate-900 leading-snug break-words" title={topHopeItem?.name}>
                     {topHopeItem?.name || "なし"}
                   </div>
                   <span className="text-[11px] text-slate-500 mt-1 block">
                     期待率: <strong className="text-indigo-600 font-bold">{hopeRate}%</strong> ({topHopeItem?.count || 0}票)
                   </span>
                 </div>
-                <div className="w-11 h-11 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
+                <div className="w-11 h-11 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0 mt-0.5">
                   <Building className="w-5 h-5" />
                 </div>
               </div>
