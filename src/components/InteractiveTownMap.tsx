@@ -111,7 +111,8 @@ export const InteractiveTownMap: React.FC<InteractiveTownMapProps> = ({
   const [activeTileLayer, setActiveTileLayer] = useState<MapTileLayer>('osm');
   const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
   const [currentZoom, setCurrentZoom] = useState<number>(DEFAULT_ZOOM);
-  const [clickedCoord, setClickedCoord] = useState<{ lat: number; lng: number } | null>(null);
+    const [clickedCoord, setClickedCoord] = useState<{ lat: number; lng: number } | null>(null);
+  const clickedMarkerRef = useRef<L.Marker | null>(null);
 
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
@@ -313,8 +314,8 @@ export const InteractiveTownMap: React.FC<InteractiveTownMapProps> = ({
             <div style="width: 6px; height: 6px; border-radius: 9999px; background-color: #0f172a; border: 1.5px solid white; margin: 0 auto;"></div>
           </div>
         `,
-        iconSize: [0, 0],
-        iconAnchor: [0, 0]
+        iconSize: isSelected ? [44, 54] : [36, 44],
+        iconAnchor: isSelected ? [22, 54] : [18, 44]
       });
 
       const lmMarker = L.marker([lm.lat, lm.lng], { icon: landmarkIcon });
@@ -335,7 +336,7 @@ export const InteractiveTownMap: React.FC<InteractiveTownMapProps> = ({
 
       const htmlContent = isSelected
         ? `
-          <div style="transform: translate(-50%, -100%); cursor: pointer; position: relative; z-index: 1000;" class="transition-all duration-300 scale-110">
+          <div style="cursor: pointer; position: relative; z-index: 1000; display: flex; flex-direction: column; align-items: center;" class="transition-all duration-300 scale-110">
             <span style="position: absolute; inset: -8px; border-radius: 9999px; background-color: #ef4444; opacity: 0.6; animation: ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite;"></span>
             <div style="background-color: ${color}; width: 44px; height: 44px; border-radius: 9999px; border: 3px solid white; box-shadow: 0 8px 16px rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; font-size: 20px; position: relative;">
               <span style="display: flex; align-items: center; justify-content: center; height: 100%;">${emoji}</span>
@@ -343,20 +344,26 @@ export const InteractiveTownMap: React.FC<InteractiveTownMapProps> = ({
                 ${sub.upvotes}
               </div>
             </div>
-            <div style="width: 0; height: 0; border-left: 8px solid transparent; border-right: 8px solid transparent; border-top: 10px solid ${color}; margin: 0 auto;"></div>
+            <div style="width: 0; height: 0; border-left: 8px solid transparent; border-right: 8px solid transparent; border-top: 10px solid ${color}; margin: 0 auto; margin-top: -1px;"></div>
           </div>
         `
         : `
-          <div style="transform: translate(-50%, -50%); cursor: pointer; position: relative; z-index: 10;" class="transition-transform duration-200 hover:scale-150 opacity-90">
-            <div style="background-color: ${color}; width: 14px; height: 14px; border-radius: 9999px; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></div>
+          <div style="cursor: pointer; position: relative; transition: all 0.3s ease; display: flex; flex-direction: column; align-items: center;" class="hover:scale-110">
+            <div style="background-color: ${color}; width: 36px; height: 36px; border-radius: 9999px; border: 2px solid white; box-shadow: 0 4px 6px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; font-size: 16px; position: relative;">
+              <span style="display: flex; align-items: center; justify-content: center; height: 100%;">${emoji}</span>
+              <div style="position: absolute; bottom: -4px; right: -4px; background-color: #0f172a; color: white; font-size: 9px; font-weight: 800; padding: 1px 4px; border-radius: 9999px; border: 1.5px solid white; line-height: 1.3;">
+                ${sub.upvotes}
+              </div>
+            </div>
+            <div style="width: 0; height: 0; border-left: 6px solid transparent; border-right: 6px solid transparent; border-top: 8px solid ${color}; margin: 0 auto; margin-top: -1px;"></div>
           </div>
         `;
 
       const ideaIcon = L.divIcon({
         className: 'custom-idea-marker',
         html: htmlContent,
-        iconSize: [0, 0],
-        iconAnchor: [0, 0]
+        iconSize: isSelected ? [44, 54] : [36, 44],
+        iconAnchor: isSelected ? [22, 54] : [18, 44]
       });
 
       const marker = L.marker([sub.lat, sub.lng], { icon: ideaIcon });
@@ -430,6 +437,35 @@ export const InteractiveTownMap: React.FC<InteractiveTownMapProps> = ({
     }, 250);
     return () => clearTimeout(timer);
   }, [isFullscreen]);
+
+
+  // Manage temporary clicked pin
+  useEffect(() => {
+    if (!mapInstanceRef.current) return;
+    
+    if (clickedCoord) {
+      if (!clickedMarkerRef.current) {
+        const tempIcon = L.divIcon({
+          className: 'custom-temp-marker-simple',
+          html: `
+            <div style="font-size: 40px; color: #ef4444; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); transform: translateY(-50%); display: flex; justify-content: center;">
+              📍
+            </div>
+          `,
+          iconSize: [40, 40],
+          iconAnchor: [20, 40]
+        });
+        clickedMarkerRef.current = L.marker([clickedCoord.lat, clickedCoord.lng], { icon: tempIcon }).addTo(mapInstanceRef.current);
+      } else {
+        clickedMarkerRef.current.setLatLng([clickedCoord.lat, clickedCoord.lng]);
+      }
+    } else {
+      if (clickedMarkerRef.current) {
+        clickedMarkerRef.current.remove();
+        clickedMarkerRef.current = null;
+      }
+    }
+  }, [clickedCoord]);
 
   return (
     <section id="town-map-section" className="space-y-6">
