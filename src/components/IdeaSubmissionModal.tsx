@@ -21,6 +21,7 @@ interface IdeaSubmissionModalProps {
   onSubmitIdea: (newIdea: Partial<IdeaSubmission>) => void;
   defaultLocationName?: string;
   defaultLat?: number;
+  hasCoords?: boolean;
   defaultLng?: number;
 }
 
@@ -30,7 +31,8 @@ export const IdeaSubmissionModal: React.FC<IdeaSubmissionModalProps> = ({
   onSubmitIdea,
   defaultLocationName = '白壁の町並み・やない西蔵周辺',
   defaultLat = 33.9678,
-  defaultLng = 132.1075
+  defaultLng = 132.1075,
+  hasCoords = false
 }) => {
   const [title, setTitle] = useState('');
   const [category, setCategory] = useState<CategoryType>('youth_student');
@@ -43,14 +45,7 @@ export const IdeaSubmissionModal: React.FC<IdeaSubmissionModalProps> = ({
   const [residency, setResidency] = useState<ResidencyArea>('school_commute');
   const [locationName, setLocationName] = useState(defaultLocationName);
   const [tagsInput, setTagsInput] = useState('高校生提案, まちなか賑わい, 白壁景観');
-  const [isAiEvaluating, setIsAiEvaluating] = useState(false);
-  const [aiAnalysisResult, setAiAnalysisResult] = useState<{
-    expectationScore: number;
-    feasibilityScore: number;
-    suggestedPhase: string;
-    aiFeedback: string;
-    extractedTags: string[];
-  } | null>(null);
+
 
   const PLACEHOLDERS = [
     "【高校生目線】どんな場所で、誰と、何を実現したい？\n例：柳井学園の生徒や地元商店街と連携して、放課後や週末に金魚ちょうちんの下で地元スイーツを楽しめる空間を作りたいです。",
@@ -67,37 +62,6 @@ export const IdeaSubmissionModal: React.FC<IdeaSubmissionModalProps> = ({
   }, [isOpen, defaultLocationName]);
 
   if (!isOpen) return null;
-
-  const handleRunAiEvaluation = async () => {
-    if (!title.trim() || !description.trim()) return;
-    setIsAiEvaluating(true);
-
-    try {
-      const res = await fetch('/api/ai/analyze-idea', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          title,
-          description,
-          category,
-          ageGroup,
-          residency
-        })
-      });
-
-      if (res.ok) {
-        const data = await res.json();
-        setAiAnalysisResult(data);
-        if (data.extractedTags && data.extractedTags.length > 0) {
-          setTagsInput(data.extractedTags.join(', '));
-        }
-      }
-    } catch (err) {
-      console.error('AI check failed:', err);
-    } finally {
-      setIsAiEvaluating(false);
-    }
-  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -120,14 +84,14 @@ export const IdeaSubmissionModal: React.FC<IdeaSubmissionModalProps> = ({
       lat: defaultLat,
       lng: defaultLng,
       tags: tags.length > 0 ? tags : ['まちなか共創', '柳井夢プラン'],
-      expectationScore: aiAnalysisResult ? aiAnalysisResult.expectationScore : 85,
-      feasibilityScore: aiAnalysisResult ? aiAnalysisResult.feasibilityScore : 78,
+      expectationScore: 85,
+      feasibilityScore: 78,
       upvotes: 1,
       downvotes: 0,
       status: 'approved',
       createdAt: new Date().toLocaleDateString('ja-JP', { month: '2-digit', day: '2-digit' }) + ' ' + new Date().toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' }),
-      adminAssignedPhase: (aiAnalysisResult?.suggestedPhase as any) || 'quick_win',
-      committeeComments: aiAnalysisResult?.aiFeedback
+      adminAssignedPhase: 'quick_win',
+      committeeComments: ""
     };
 
     confetti({
@@ -167,7 +131,7 @@ export const IdeaSubmissionModal: React.FC<IdeaSubmissionModalProps> = ({
           {/* Category Selector Tabs */}
           <div>
             <label className="block text-xs font-bold text-slate-800 mb-1.5">
-              提案の視点・分類 <span className="text-rose-500">*</span>
+              提案の視点・分類 <span className="text-rose-500 font-bold ml-1">【必須】</span>
             </label>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
               <button
@@ -242,7 +206,7 @@ export const IdeaSubmissionModal: React.FC<IdeaSubmissionModalProps> = ({
           {/* Title */}
           <div>
             <label className="block text-xs font-bold text-slate-800 mb-1">
-              アイデアのタイトル <span className="text-rose-500">*</span>
+              アイデアのタイトル <span className="text-rose-500 font-bold ml-1">【必須】</span>
             </label>
             <input
               type="text"
@@ -257,7 +221,7 @@ export const IdeaSubmissionModal: React.FC<IdeaSubmissionModalProps> = ({
           {/* Description */}
           <div>
             <label className="block text-xs font-bold text-slate-800 mb-1">
-              提案の具体的内容・背景・期待する効果 <span className="text-rose-500">*</span>
+              提案の具体的内容・背景・期待する効果 <span className="text-rose-500 font-bold ml-1">【必須】</span>
             </label>
             <textarea
               rows={4}
@@ -269,56 +233,12 @@ export const IdeaSubmissionModal: React.FC<IdeaSubmissionModalProps> = ({
             />
           </div>
 
-          {/* AI Pre-evaluation Button */}
-          <div className="flex items-center justify-between p-3 rounded-xl bg-indigo-50/80 border border-indigo-100">
-            <div className="text-xs text-indigo-950">
-              <span className="font-bold flex items-center gap-1">
-                <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-                AIによる即時スコアリング＆講評
-              </span>
-              <span className="text-[11px] text-indigo-700">投稿前に期待度・実現可能性の目安を判定します</span>
-            </div>
-            <button
-              type="button"
-              onClick={handleRunAiEvaluation}
-              disabled={isAiEvaluating || !title.trim() || !description.trim()}
-              className="px-3 py-1.5 rounded-lg text-xs font-bold bg-indigo-900 hover:bg-indigo-950 text-white shadow-2xs transition-all disabled:opacity-50 cursor-pointer"
-            >
-              {isAiEvaluating ? '分析中...' : 'AIで事前診断'}
-            </button>
-          </div>
-
-          {/* AI Feedback Preview Card if available */}
-          {aiAnalysisResult && (
-            <div className="bg-emerald-50 rounded-xl p-3.5 border border-emerald-200 text-xs space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="font-bold text-emerald-900 flex items-center gap-1">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                  AI診断結果
-                </span>
-                <span className="text-[11px] font-semibold text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded">
-                  推奨: {aiAnalysisResult.suggestedPhase === 'quick_win' ? '① 即時実行' : '② 戦略的重点'}
-                </span>
-              </div>
-              <div className="grid grid-cols-2 gap-2 text-[11px] text-slate-700">
-                <div className="bg-white p-2 rounded border border-emerald-200">
-                  住民期待度目安: <strong className="text-indigo-700 font-bold">{aiAnalysisResult.expectationScore}点</strong>
-                </div>
-                <div className="bg-white p-2 rounded border border-emerald-200">
-                  実現可能性目安: <strong className="text-emerald-700 font-bold">{aiAnalysisResult.feasibilityScore}点</strong>
-                </div>
-              </div>
-              <p className="text-[11px] text-emerald-950 leading-relaxed">
-                {aiAnalysisResult.aiFeedback}
-              </p>
-            </div>
-          )}
-
           {/* Location and Demographic Attributes Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+            {!hasCoords ? (
             <div className="col-span-1 sm:col-span-2">
               <label className="block text-xs font-bold text-slate-800 mb-1">
-                対象の場所・エリア（任意）
+                対象の場所・エリア <span className="text-slate-500 font-normal ml-1">【任意】</span>
               </label>
               <div className="flex flex-col sm:flex-row gap-2 items-start sm:items-center">
                 <input
@@ -328,16 +248,14 @@ export const IdeaSubmissionModal: React.FC<IdeaSubmissionModalProps> = ({
                   placeholder="具体的な場所（例: 白壁通り、駅前広場など）"
                   className="w-full sm:flex-1 text-xs px-3 py-2 border border-slate-300 rounded-lg bg-slate-50 font-medium focus:ring-2 focus:ring-indigo-500 focus:outline-hidden"
                 />
-                <div className="text-[10px] text-slate-500 bg-slate-100 px-2 py-1 rounded-md whitespace-nowrap border border-slate-200">
-                  📍 座標: {defaultLat.toFixed(5)}, {defaultLng.toFixed(5)}
-                </div>
               </div>
-              <p className="text-[10px] text-slate-500 mt-1">※ まちなかの構想的なアイデアなど特定できない場合は空欄で構いません。マップ指定の場合はその場所が記録されますが、概ねのエリア指定としてテキスト入力（任意）も可能です。</p>
+              <p className="text-[10px] text-slate-500 mt-1">※ マップでピンを刺さなかった場合の概ねのエリア指定としてテキスト入力（任意）が可能です。</p>
             </div>
+          ) : null}
 
             <div>
               <label className="block text-xs font-bold text-slate-800 mb-1">
-                年代・属性（集計用） <span className="text-rose-500">*</span>
+                年代・属性（集計用） <span className="text-rose-500 font-bold ml-1">【必須】</span>
               </label>
               <select
                 value={residency}
@@ -354,7 +272,7 @@ export const IdeaSubmissionModal: React.FC<IdeaSubmissionModalProps> = ({
 
             <div>
               <label className="block text-xs font-bold text-slate-800 mb-1">
-                お名前 / ニックネーム（公開用）
+                お名前 / ニックネーム（公開用） <span className="text-slate-500 font-normal ml-1">【任意】</span>
               </label>
               <input
                 type="text"
@@ -364,20 +282,6 @@ export const IdeaSubmissionModal: React.FC<IdeaSubmissionModalProps> = ({
                 className="w-full text-xs px-3 py-2 border border-slate-300 rounded-lg font-medium focus:ring-2 focus:ring-indigo-500 focus:outline-hidden"
               />
             </div>
-          </div>
-
-          {/* Tags */}
-          <div>
-            <label className="block text-xs font-bold text-slate-800 mb-1">
-              関連タグ（カンマ区切り）
-            </label>
-            <input
-              type="text"
-              value={tagsInput}
-              onChange={(e) => setTagsInput(e.target.value)}
-              placeholder="高校生提案, ナイトマルシェ, 白壁景観"
-              className="w-full text-xs px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-hidden"
-            />
           </div>
 
           {/* Actions */}

@@ -789,6 +789,7 @@ export default function App() {
         onSubmitIdea={handleAddNewIdea}
         defaultLat={submitCoords?.lat}
         defaultLng={submitCoords?.lng}
+            hasCoords={!!submitCoords}
         defaultLocationName={submitCoords?.locationName}
       />
 

@@ -73,7 +73,7 @@ export const IdeaSubmissionSection: React.FC<IdeaSubmissionSectionProps> = ({
               
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-sm font-bold text-slate-800 mb-2">性別</label>
+                  <label className="block text-sm font-bold text-slate-800 mb-2">性別 <span className="text-slate-500 font-normal ml-1">【任意】</span></label>
                   <select
                     value={gender}
                     onChange={(e) => setGender(e.target.value)}
@@ -87,7 +87,7 @@ export const IdeaSubmissionSection: React.FC<IdeaSubmissionSectionProps> = ({
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-bold text-slate-800 mb-2">年代 <span className="text-rose-500">*</span></label>
+                  <label className="block text-sm font-bold text-slate-800 mb-2">年代 <span className="text-rose-500 font-bold ml-1">【必須】</span></label>
                   <select
                     value={age}
                     onChange={(e) => setAge(e.target.value)}
@@ -108,7 +108,7 @@ export const IdeaSubmissionSection: React.FC<IdeaSubmissionSectionProps> = ({
                 </div>
 
                 <div className="sm:col-span-2">
-                  <label className="block text-sm font-bold text-slate-800 mb-2">居住地域・関わり <span className="text-rose-500">*</span></label>
+                  <label className="block text-sm font-bold text-slate-800 mb-2">居住地域・関わり <span className="text-rose-500 font-bold ml-1">【必須】</span></label>
                   <select
                     value={residency}
                     onChange={(e) => setResidency(e.target.value)}
@@ -126,7 +126,7 @@ export const IdeaSubmissionSection: React.FC<IdeaSubmissionSectionProps> = ({
               </div>
 
               <div>
-                <label className="block text-sm font-bold text-slate-800 mb-2">提案の視点・分類 <span className="text-rose-500">*</span></label>
+                <label className="block text-sm font-bold text-slate-800 mb-2">提案の視点・分類 <span className="text-rose-500 font-bold ml-1">【必須】</span></label>
                 <select
                   value={category}
                   onChange={(e) => setCategory(e.target.value)}
@@ -134,17 +134,16 @@ export const IdeaSubmissionSection: React.FC<IdeaSubmissionSectionProps> = ({
                   className="w-full px-3.5 py-2.5 bg-white rounded-xl border border-slate-300 text-sm text-slate-800 focus:ring-2 focus:ring-blue-500 outline-none"
                 >
                   <option value="">選択してください</option>
-                  <option value="living_infrastructure">【暮らし×課題解決】交通・インフラの改善</option>
-                  <option value="living_environment">【暮らし×課題解決】防犯・防災・居住環境の改善</option>
-                  <option value="living_community">【暮らし×価値創造】子育て・福祉・コミュニティの充実</option>
-                  <option value="bustle_landscape">【賑わい×課題解決】空き家・空き店舗の活用・景観保全</option>
-                  <option value="bustle_tourism">【賑わい×価値創造】観光・イベント・新たな魅力創出</option>
-                  <option value="other_concept">【その他】まちなか全体の仕組み・構想</option>
+                  <option value="value_creation">新しい価値の創造（イベント、お店、交流拠点など）</option>
+                  <option value="improvement">既存の課題解決（交通、景観、安全、空き家など）</option>
+                  <option value="traffic_walk">回遊性・アクセス向上（歩行者空間、自転車、駐車場など）</option>
+                  <option value="culture_event">歴史・文化の活用（白壁の町並み、伝統行事など）</option>
+                  <option value="youth_student">若者・学生の活躍（学生プロジェクト、遊び場など）</option>
                 </select>
               </div>
 
               <div>
-                <label className="block text-sm font-bold text-slate-800 mb-2">対象の場所・エリア（任意）</label>
+                <label className="block text-sm font-bold text-slate-800 mb-2">対象の場所・エリア <span className="text-slate-500 font-normal ml-1">【任意】</span></label>
                 <input
                   type="text"
                   value={locationName}
@@ -156,7 +155,7 @@ export const IdeaSubmissionSection: React.FC<IdeaSubmissionSectionProps> = ({
               </div>
 
               <div>
-                <label className="block text-sm font-bold text-slate-800 mb-2">ご意見・アイデア詳細 <span className="text-rose-500">*</span></label>
+                <label className="block text-sm font-bold text-slate-800 mb-2">ご意見・アイデア詳細 <span className="text-rose-500 font-bold ml-1">【必須】</span></label>
                 <textarea
                   value={opinion}
                   onChange={(e) => setOpinion(e.target.value)}

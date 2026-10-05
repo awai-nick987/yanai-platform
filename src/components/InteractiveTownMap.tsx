@@ -160,17 +160,15 @@ export const InteractiveTownMap: React.FC<InteractiveTownMapProps> = ({
   const getCategoryBadge = (category: CategoryType) => {
     switch (category) {
       case 'value_creation':
-        return <span className="px-2 py-0.5 rounded text-[11px] font-semibold bg-blue-100 text-blue-800 border border-blue-200">価値創造</span>;
+        return <span className="px-2 py-0.5 rounded text-[11px] font-semibold bg-blue-100 text-blue-800 border border-blue-200">新しい価値の創造</span>;
       case 'improvement':
-        return <span className="px-2 py-0.5 rounded text-[11px] font-semibold bg-amber-100 text-amber-800 border border-amber-200">改善点</span>;
-      case 'youth_student':
-        return <span className="px-2 py-0.5 rounded text-[11px] font-semibold bg-emerald-100 text-emerald-800 border border-emerald-200">若者・高校生</span>;
+        return <span className="px-2 py-0.5 rounded text-[11px] font-semibold bg-amber-100 text-amber-800 border border-amber-200">既存の課題解決</span>;
       case 'traffic_walk':
-        return <span className="px-2 py-0.5 rounded text-[11px] font-semibold bg-purple-100 text-purple-800 border border-purple-200">交通・回遊</span>;
-      case 'downtown_buzz':
-        return <span className="px-2 py-0.5 rounded text-[11px] font-semibold bg-rose-100 text-rose-800 border border-rose-200">まちなか賑わい</span>;
-      case 'shirakabe_view':
-        return <span className="px-2 py-0.5 rounded text-[11px] font-semibold bg-indigo-100 text-indigo-800 border border-indigo-200">白壁・景観</span>;
+        return <span className="px-2 py-0.5 rounded text-[11px] font-semibold bg-purple-100 text-purple-800 border border-purple-200">回遊性・アクセス向上</span>;
+      case 'culture_event':
+        return <span className="px-2 py-0.5 rounded text-[11px] font-semibold bg-indigo-100 text-indigo-800 border border-indigo-200">歴史・文化の活用</span>;
+      case 'youth_student':
+        return <span className="px-2 py-0.5 rounded text-[11px] font-semibold bg-emerald-100 text-emerald-800 border border-emerald-200">若者・学生の活躍</span>;
       default:
         return <span className="px-2 py-0.5 rounded text-[11px] font-semibold bg-slate-100 text-slate-800 border border-slate-200">地域提案</span>;
     }
@@ -180,22 +178,20 @@ export const InteractiveTownMap: React.FC<InteractiveTownMapProps> = ({
     switch (category) {
       case 'value_creation': return '#2563eb'; // blue-600
       case 'improvement': return '#d97706'; // amber-600
-      case 'youth_student': return '#059669'; // emerald-600
       case 'traffic_walk': return '#7c3aed'; // purple-600
-      case 'downtown_buzz': return '#e11d48'; // rose-600
-      case 'shirakabe_view': return '#4338ca'; // indigo-700
+      case 'culture_event': return '#4338ca'; // indigo-700
+      case 'youth_student': return '#059669'; // emerald-600
       default: return '#0284c7'; // sky-600
     }
   };
 
   const getCategoryEmoji = (category: CategoryType) => {
     switch (category) {
-      case 'youth_student': return '🏫';
       case 'value_creation': return '✨';
       case 'improvement': return '🛠';
       case 'traffic_walk': return '🚲';
-      case 'downtown_buzz': return '🏮';
-      case 'shirakabe_view': return '🏯';
+      case 'culture_event': return '🏯';
+      case 'youth_student': return '🏫';
       default: return '💡';
     }
   };
@@ -455,7 +451,15 @@ export const InteractiveTownMap: React.FC<InteractiveTownMapProps> = ({
           iconSize: [40, 40],
           iconAnchor: [20, 40]
         });
-        clickedMarkerRef.current = L.marker([clickedCoord.lat, clickedCoord.lng], { icon: tempIcon }).addTo(mapInstanceRef.current);
+        clickedMarkerRef.current = L.marker([clickedCoord.lat, clickedCoord.lng], { 
+          icon: tempIcon,
+          draggable: true
+        }).addTo(mapInstanceRef.current);
+        
+        clickedMarkerRef.current.on('dragend', (e) => {
+          const newPos = e.target.getLatLng();
+          setClickedCoord({ lat: newPos.lat, lng: newPos.lng });
+        });
       } else {
         clickedMarkerRef.current.setLatLng([clickedCoord.lat, clickedCoord.lng]);
       }
@@ -506,7 +510,7 @@ export const InteractiveTownMap: React.FC<InteractiveTownMapProps> = ({
       {/* Filter and Control Bar */}
       <div className="bg-white rounded-2xl p-4 border border-slate-200 shadow-xs flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap items-center gap-2">
-          <div className="flex items-center gap-1.5 text-xs font-bold text-slate-700 mr-1">
+          <div className="text-xs font-bold text-slate-500 bg-slate-100 px-3 py-1.5 rounded-xl border border-slate-200 flex items-center gap-1.5 shadow-xs">
             <Filter className="w-3.5 h-3.5 text-blue-600" />
             <span>絞り込み:</span>
           </div>
@@ -522,16 +526,6 @@ export const InteractiveTownMap: React.FC<InteractiveTownMapProps> = ({
             すべて ({submissions.length})
           </button>
           <button
-            onClick={() => setSelectedCategory('youth_student')}
-            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-              selectedCategory === 'youth_student'
-                ? 'bg-emerald-700 text-white shadow-xs'
-                : 'bg-emerald-50 text-emerald-800 hover:bg-emerald-100 border border-emerald-200'
-            }`}
-          >
-            🏫 若者・高校生
-          </button>
-          <button
             onClick={() => setSelectedCategory('value_creation')}
             className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
               selectedCategory === 'value_creation'
@@ -539,7 +533,7 @@ export const InteractiveTownMap: React.FC<InteractiveTownMapProps> = ({
                 : 'bg-blue-50 text-blue-800 hover:bg-blue-100 border border-blue-200'
             }`}
           >
-            ✨ 価値創造
+            ✨ 新しい価値の創造
           </button>
           <button
             onClick={() => setSelectedCategory('improvement')}
@@ -549,7 +543,7 @@ export const InteractiveTownMap: React.FC<InteractiveTownMapProps> = ({
                 : 'bg-amber-50 text-amber-900 hover:bg-amber-100 border border-amber-200'
             }`}
           >
-            🛠 改善点・課題
+            🛠 既存の課題解決
           </button>
           <button
             onClick={() => setSelectedCategory('traffic_walk')}
@@ -559,17 +553,27 @@ export const InteractiveTownMap: React.FC<InteractiveTownMapProps> = ({
                 : 'bg-purple-50 text-purple-800 hover:bg-purple-100 border border-purple-200'
             }`}
           >
-            🚲 交通・回遊
+            🚲 回遊性・アクセス向上
           </button>
           <button
-            onClick={() => setSelectedCategory('downtown_buzz')}
+            onClick={() => setSelectedCategory('culture_event')}
             className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-              selectedCategory === 'downtown_buzz'
-                ? 'bg-rose-700 text-white shadow-xs'
-                : 'bg-rose-50 text-rose-800 hover:bg-rose-100 border border-rose-200'
+              selectedCategory === 'culture_event'
+                ? 'bg-indigo-700 text-white shadow-xs'
+                : 'bg-indigo-50 text-indigo-800 hover:bg-indigo-100 border border-indigo-200'
             }`}
           >
-            🏮 まちなか賑わい
+            🏯 歴史・文化の活用
+          </button>
+          <button
+            onClick={() => setSelectedCategory('youth_student')}
+            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+              selectedCategory === 'youth_student'
+                ? 'bg-emerald-700 text-white shadow-xs'
+                : 'bg-emerald-50 text-emerald-800 hover:bg-emerald-100 border border-emerald-200'
+            }`}
+          >
+            🏫 若者・学生の活躍
           </button>
         </div>
 
