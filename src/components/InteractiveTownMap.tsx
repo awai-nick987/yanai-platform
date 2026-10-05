@@ -314,8 +314,8 @@ export const InteractiveTownMap: React.FC<InteractiveTownMapProps> = ({
             <div style="width: 6px; height: 6px; border-radius: 9999px; background-color: #0f172a; border: 1.5px solid white; margin: 0 auto;"></div>
           </div>
         `,
-        iconSize: isSelected ? [44, 54] : [36, 44],
-        iconAnchor: isSelected ? [22, 54] : [18, 44]
+        iconSize: [40, 40],
+        iconAnchor: [20, 36]
       });
 
       const lmMarker = L.marker([lm.lat, lm.lng], { icon: landmarkIcon });
