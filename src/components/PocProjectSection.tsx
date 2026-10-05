@@ -27,6 +27,8 @@ export const PocProjectSection: React.FC<PocProjectSectionProps> = ({
 
   const categories = ['all', 'まちなか回遊', '子育て支援', '移動・交通', '白壁景観・文化', '若者・高校生'];
 
+  const safeProjects = projects || [];
+  const visibleProjects = currentRole === 'admin' ? safeProjects : safeProjects.filter(p => !p.isHidden);
   const filteredProjects = visibleProjects.filter(p => {
     if (filterCategory !== 'all' && !p.tags.includes(filterCategory) && p.category !== filterCategory) return false;
     if (filterStatus !== 'all' && p.status !== filterStatus) return false;

@@ -97,19 +97,79 @@ export const Navbar: React.FC<NavbarProps> = ({
           </div>
 
           <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap w-full sm:w-auto justify-start sm:justify-end">
-            {/* Quick Staff Portal Direct Return Button in top bar */}
-            <button
-              onClick={() => handleNavClick(getStaffPortalTab())}
-              className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all flex items-center gap-1 cursor-pointer whitespace-nowrap ${
-                isPortalActive 
-                  ? 'bg-amber-400 text-slate-950 shadow-xs ring-1 ring-white' 
-                  : 'bg-amber-500/20 text-amber-300 border border-amber-400/40 hover:bg-amber-500/30'
-              }`}
-              title="運営・管理ポータル画面へ移動"
-            >
-              <LayoutDashboard className="w-3 h-3" />
-              <span>{getStaffPortalLabel()}へ戻る</span>
-            </button>
+            {/* Staff Portal Switch Buttons */}
+            {currentRole === 'admin' && (
+              <>
+                <button
+                  onClick={() => handleNavClick('admin')}
+                  className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all flex items-center gap-1 cursor-pointer whitespace-nowrap ${
+                    activeTab === 'admin' 
+                      ? 'bg-amber-400 text-slate-950 shadow-xs ring-1 ring-white' 
+                      : 'bg-amber-500/20 text-amber-300 border border-amber-400/40 hover:bg-amber-500/30'
+                  }`}
+                >
+                  <span>👑 管理画面</span>
+                </button>
+                <button
+                  onClick={() => handleNavClick('workspace')}
+                  className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all flex items-center gap-1 cursor-pointer whitespace-nowrap ${
+                    activeTab === 'workspace' 
+                      ? 'bg-amber-400 text-slate-950 shadow-xs ring-1 ring-white' 
+                      : 'bg-amber-500/20 text-amber-300 border border-amber-400/40 hover:bg-amber-500/30'
+                  }`}
+                >
+                  <span>🤝 ワークスペース</span>
+                </button>
+                <button
+                  onClick={() => handleNavClick('recruitment')}
+                  className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all flex items-center gap-1 cursor-pointer whitespace-nowrap ${
+                    activeTab === 'recruitment' 
+                      ? 'bg-amber-400 text-slate-950 shadow-xs ring-1 ring-white' 
+                      : 'bg-amber-500/20 text-amber-300 border border-amber-400/40 hover:bg-amber-500/30'
+                  }`}
+                >
+                  <span>📢 募集投稿画面</span>
+                </button>
+              </>
+            )}
+
+            {currentRole === 'workspace' && (
+              <>
+                <button
+                  onClick={() => handleNavClick('workspace')}
+                  className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all flex items-center gap-1 cursor-pointer whitespace-nowrap ${
+                    activeTab === 'workspace' 
+                      ? 'bg-amber-400 text-slate-950 shadow-xs ring-1 ring-white' 
+                      : 'bg-amber-500/20 text-amber-300 border border-amber-400/40 hover:bg-amber-500/30'
+                  }`}
+                >
+                  <span>🤝 ワークスペース</span>
+                </button>
+                <button
+                  onClick={() => handleNavClick('recruitment')}
+                  className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all flex items-center gap-1 cursor-pointer whitespace-nowrap ${
+                    activeTab === 'recruitment' 
+                      ? 'bg-amber-400 text-slate-950 shadow-xs ring-1 ring-white' 
+                      : 'bg-amber-500/20 text-amber-300 border border-amber-400/40 hover:bg-amber-500/30'
+                  }`}
+                >
+                  <span>📢 募集投稿画面</span>
+                </button>
+              </>
+            )}
+
+            {currentRole === 'recruiter' && (
+              <button
+                onClick={() => handleNavClick('recruitment')}
+                className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all flex items-center gap-1 cursor-pointer whitespace-nowrap ${
+                  activeTab === 'recruitment' 
+                    ? 'bg-amber-400 text-slate-950 shadow-xs ring-1 ring-white' 
+                    : 'bg-amber-500/20 text-amber-300 border border-amber-400/40 hover:bg-amber-500/30'
+                }`}
+              >
+                <span>📢 募集投稿画面</span>
+              </button>
+            )}
 
             {/* Quick staff shortcuts */}
             {(currentRole === 'admin' || currentRole === 'workspace') && (
@@ -537,18 +597,65 @@ export const Navbar: React.FC<NavbarProps> = ({
             </button>
           )}
 
-          {/* Quick Staff Portal Pill on Mobile bar if logged in */}
-          {isStaffLoggedIn && (
+          {/* Staff Portal Switch Buttons on Mobile bar */}
+          {currentRole === 'admin' && (
+            <>
+              <button
+                onClick={() => handleNavClick('admin')}
+                className={`px-2.5 py-1 rounded-lg whitespace-nowrap font-bold text-xs flex items-center gap-1 shadow-2xs ${
+                  activeTab === 'admin' ? 'bg-amber-400 text-slate-950' : 'bg-amber-500/20 text-amber-700 border border-amber-400/40'
+                }`}
+              >
+                <span>👑 管理画面</span>
+              </button>
+              <button
+                onClick={() => handleNavClick('workspace')}
+                className={`px-2.5 py-1 rounded-lg whitespace-nowrap font-bold text-xs flex items-center gap-1 shadow-2xs ${
+                  activeTab === 'workspace' ? 'bg-amber-400 text-slate-950' : 'bg-amber-500/20 text-amber-700 border border-amber-400/40'
+                }`}
+              >
+                <span>🤝 ワークスペース</span>
+              </button>
+              <button
+                onClick={() => handleNavClick('recruitment')}
+                className={`px-2.5 py-1 rounded-lg whitespace-nowrap font-bold text-xs flex items-center gap-1 shadow-2xs ${
+                  activeTab === 'recruitment' ? 'bg-amber-400 text-slate-950' : 'bg-amber-500/20 text-amber-700 border border-amber-400/40'
+                }`}
+              >
+                <span>📢 募集投稿画面</span>
+              </button>
+            </>
+          )}
+
+          {currentRole === 'workspace' && (
+            <>
+              <button
+                onClick={() => handleNavClick('workspace')}
+                className={`px-2.5 py-1 rounded-lg whitespace-nowrap font-bold text-xs flex items-center gap-1 shadow-2xs ${
+                  activeTab === 'workspace' ? 'bg-amber-400 text-slate-950' : 'bg-amber-500/20 text-amber-700 border border-amber-400/40'
+                }`}
+              >
+                <span>🤝 ワークスペース</span>
+              </button>
+              <button
+                onClick={() => handleNavClick('recruitment')}
+                className={`px-2.5 py-1 rounded-lg whitespace-nowrap font-bold text-xs flex items-center gap-1 shadow-2xs ${
+                  activeTab === 'recruitment' ? 'bg-amber-400 text-slate-950' : 'bg-amber-500/20 text-amber-700 border border-amber-400/40'
+                }`}
+              >
+                <span>📢 募集投稿画面</span>
+              </button>
+            </>
+          )}
+
+          {currentRole === 'recruiter' && (
             <button
-              onClick={() => handleNavClick(getStaffPortalTab())}
+              onClick={() => handleNavClick('recruitment')}
               className={`px-2.5 py-1 rounded-lg whitespace-nowrap font-bold text-xs flex items-center gap-1 shadow-2xs ${
-                isPortalActive 
-                  ? 'bg-slate-900 text-amber-300 ring-1 ring-amber-400' 
-                  : 'bg-amber-500 text-slate-950 hover:bg-amber-400'
+                activeTab === 'recruitment' ? 'bg-amber-400 text-slate-950' : 'bg-amber-500/20 text-amber-700 border border-amber-400/40'
               }`}
             >
-              <ShieldCheck className="w-3.5 h-3.5" />
-              <span>運営ポータル</span>
+              <span>📢 募集投稿画面</span>
             </button>
           )}
         </div>

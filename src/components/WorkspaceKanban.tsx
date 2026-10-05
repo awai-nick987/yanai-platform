@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { IdeaSubmission, SystemSettings, CMSArticle, TeamMember, UserRole, WorkspaceTask, RecruitmentPost } from '../types';
 import { 
-  BarChart3, Layers, 
+  BarChart3, 
   ClipboardList, 
   Calendar as CalendarIcon, 
   MessageSquare, 
@@ -33,6 +33,7 @@ import {
 import { AdminModeration } from './AdminModeration';
 import { UserRoleManagement } from './UserRoleManagement';
 import { RecruitmentAdmin } from './RecruitmentAdmin';
+import { IntegratedAnalysisApp } from './IntegratedAnalysisApp';
 import { SurveyApp } from './survey/SurveyApp';
 import { IntegratedAnalysis } from './workspace/IntegratedAnalysis';
 import { WorkshopDataImporter } from './WorkshopDataImporter';

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { WorkspaceTask, IdeaSubmission, UserRole } from '../../types';
-import { 
+import { KanbanSquare, List, BarChart, Users, Calendar, 
   ClipboardList, 
   PlusCircle, 
   Sparkles, 
@@ -47,6 +47,7 @@ export const WorkspaceTasks: React.FC<WorkspaceTasksProps> = ({
   ];
 
   // Drag and Drop State
+    const [viewMode, setViewMode] = useState<'kanban' | 'list' | 'gantt'>('kanban');
   const [draggedTaskId, setDraggedTaskId] = useState<string | null>(null);
   const [dragOverStage, setDragOverStage] = useState<WorkspaceTask['stage'] | null>(null);
 
@@ -374,6 +375,7 @@ function generateYanaiSummary() {
       )}
 
       {/* Kanban Board Grid (4 Columns) */}
+      {viewMode === 'kanban' && (
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
         {STAGES.map((stage, stageIndex) => {
           const stageTasks = safeTasks.filter(t => t.stage === stage.key);
@@ -497,6 +499,76 @@ function generateYanaiSummary() {
           );
         })}
       </div>
+      )}
+
+      {viewMode === 'list' && (
+        <div className="flex-1 overflow-y-auto bg-white rounded-2xl border border-slate-200 shadow-sm p-4 space-y-3 custom-scrollbar">
+          {safeTasks.map(task => (
+            <div key={task.id} className="p-4 border border-slate-100 rounded-xl bg-slate-50 flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div className="flex-1">
+                <div className="flex flex-wrap gap-2 mb-2">
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-200 text-slate-700">{task.priority === 'high' ? '高' : task.priority === 'medium' ? '中' : '低'}</span>
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-700">{task.category}</span>
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-100 text-indigo-800">{STAGES.find(s => s.key === task.stage)?.label}</span>
+                </div>
+                <h4 className="text-sm font-bold text-slate-900">{task.title}</h4>
+                <div className="flex items-center gap-4 mt-2 text-xs text-slate-500">
+                  <span className="flex items-center gap-1"><Users className="w-3.5 h-3.5" /> 担当: {task.assignee}</span>
+                  <span className="flex items-center gap-1"><Calendar className="w-3.5 h-3.5" /> 期限: {task.dueDate}</span>
+                </div>
+              </div>
+              <div className="shrink-0 flex items-center gap-2">
+                 <select 
+                    value={task.stage} 
+                    onChange={(e) => onUpdateTaskStage && onUpdateTaskStage(task.id, e.target.value as any)}
+                    className="text-xs border border-slate-200 rounded-lg px-2 py-1.5 bg-white cursor-pointer"
+                 >
+                    {STAGES.map(s => <option key={s.key} value={s.key}>{s.label}</option>)}
+                 </select>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {viewMode === 'gantt' && (
+        <div className="flex-1 overflow-auto bg-white rounded-2xl border border-slate-200 shadow-sm p-6 relative custom-scrollbar">
+          <div className="min-w-[800px]">
+            <div className="flex items-center border-b border-slate-100 pb-2 mb-4 text-xs font-bold text-slate-400">
+              <div className="w-1/3">タスク名</div>
+              <div className="w-2/3 flex">
+                <div className="flex-1 text-center">9月上旬</div>
+                <div className="flex-1 text-center border-l border-slate-100">9月下旬</div>
+                <div className="flex-1 text-center border-l border-slate-100">10月上旬</div>
+                <div className="flex-1 text-center border-l border-slate-100">10月下旬</div>
+                <div className="flex-1 text-center border-l border-slate-100">11月以降</div>
+              </div>
+            </div>
+            <div className="space-y-4">
+              {safeTasks.map((task, idx) => {
+                const startOffset = (idx % 4) * 12;
+                const width = 25 + (idx % 3) * 10;
+                return (
+                  <div key={task.id} className="flex items-center group">
+                    <div className="w-1/3 pr-4 truncate text-xs font-bold text-slate-800" title={task.title}>
+                      {task.title}
+                    </div>
+                    <div className="w-2/3 relative h-6 bg-slate-50 rounded-full border border-slate-100 overflow-hidden">
+                      <div 
+                        className={`absolute top-0 bottom-0 rounded-full ${task.stage === 'plan_reflected' ? 'bg-emerald-400' : 'bg-indigo-400'} flex items-center px-2 opacity-90 hover:opacity-100 cursor-pointer transition-opacity shadow-sm`}
+                        style={{ left: `${startOffset}%`, width: `${width}%` }}
+                        title={`担当: ${task.assignee} / 期限: ${task.dueDate}`}
+                      >
+                        <span className="text-[10px] text-white font-bold truncate">{STAGES.find(s => s.key === task.stage)?.label.split(' ')[1] || task.stage}</span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Add Task Modal */}
       {isAddModalOpen && (

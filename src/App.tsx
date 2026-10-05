@@ -42,8 +42,7 @@ import {
   subscribeToVisionOptions,
   saveSubmission,
   updateSubmissionInDb,
-  updateVisionOptionInDb,
-  initializeDefaultData 
+  updateVisionOptionInDb, deleteSubmissionFromDb, initializeDefaultData 
 } from './services/firebaseService';
 
 
@@ -55,8 +54,7 @@ import { PocProjectEditorModal } from './components/PocProjectEditorModal';
 import { PocReportWizardModal } from './components/PocReportWizardModal';
 import { WorkshopPopupModal } from './components/WorkshopPopupModal';
 
-import { 
-  Building2, 
+import { Building2, Eye, EyeOff, Edit3, 
   MapPin, 
   Sparkles, 
   CheckCircle2, 
@@ -77,37 +75,44 @@ export default function App() {
   // Main Data States with localStorage fallback
   const [submissions, setSubmissions] = useState<IdeaSubmission[]>(() => {
     const saved = localStorage.getItem('yanai_submissions');
-    return saved ? JSON.parse(saved) : INITIAL_SUBMISSIONS;
+    let parsed = null; try { parsed = saved ? JSON.parse(saved) : null; } catch(e) { parsed = null; }
+    return parsed || INITIAL_SUBMISSIONS;
   });
 
   const [visionOptions, setVisionOptions] = useState<VisionOption[]>(() => {
     const saved = localStorage.getItem('yanai_vision_options');
-    return saved ? JSON.parse(saved) : INITIAL_VISION_OPTIONS;
+    let parsed = null; try { parsed = saved ? JSON.parse(saved) : null; } catch(e) { parsed = null; }
+    return parsed || INITIAL_VISION_OPTIONS;
   });
 
   const [recruitmentPosts, setRecruitmentPosts] = useState<RecruitmentPost[]>(() => {
     const saved = localStorage.getItem('yanai_recruitment_posts');
-    return saved ? JSON.parse(saved) : INITIAL_RECRUITMENT_POSTS;
+    let parsed = null; try { parsed = saved ? JSON.parse(saved) : null; } catch(e) { parsed = null; }
+    return parsed || INITIAL_RECRUITMENT_POSTS;
   });
 
   const [workspaceTasks, setWorkspaceTasks] = useState<WorkspaceTask[]>(() => {
     const saved = localStorage.getItem('yanai_workspace_tasks');
-    return saved ? JSON.parse(saved) : INITIAL_WORKSPACE_TASKS;
+    let parsed = null; try { parsed = saved ? JSON.parse(saved) : null; } catch(e) { parsed = null; }
+    return parsed || INITIAL_WORKSPACE_TASKS;
   });
 
   const [cmsArticles, setCmsArticles] = useState<CMSArticle[]>(() => {
     const saved = localStorage.getItem('yanai_cms_articles');
-    return saved ? JSON.parse(saved) : INITIAL_CMS_ARTICLES;
+    let parsed = null; try { parsed = saved ? JSON.parse(saved) : null; } catch(e) { parsed = null; }
+    return parsed || INITIAL_CMS_ARTICLES;
   });
 
   const [members, setMembers] = useState<TeamMember[]>(() => {
     const saved = localStorage.getItem('yanai_team_members');
-    return saved ? JSON.parse(saved) : INITIAL_TEAM_MEMBERS;
+    let parsed = null; try { parsed = saved ? JSON.parse(saved) : null; } catch(e) { parsed = null; }
+    return parsed || INITIAL_TEAM_MEMBERS;
   });
 
   const [systemSettings, setSystemSettings] = useState<SystemSettings>(() => {
     const saved = localStorage.getItem('yanai_system_settings');
-    return saved ? JSON.parse(saved) : INITIAL_SYSTEM_SETTINGS;
+    let parsed = null; try { parsed = saved ? JSON.parse(saved) : null; } catch(e) { parsed = null; }
+    return parsed || INITIAL_SYSTEM_SETTINGS;
   });
 
   useEffect(() => {
@@ -117,7 +122,8 @@ export default function App() {
 
   const [pocProjects, setPocProjects] = useState<PocProject[]>(() => {
     const saved = localStorage.getItem('yanai_poc_projects');
-    return saved ? JSON.parse(saved) : INITIAL_POC_PROJECTS;
+    let parsed = null; try { parsed = saved ? JSON.parse(saved) : null; } catch(e) { parsed = null; }
+    return parsed || INITIAL_POC_PROJECTS;
   });
 
   // UI Navigation, Role & Modal States
@@ -344,7 +350,7 @@ export default function App() {
   };
 
   // Section Toggles from Admin
-  const toggles = systemSettings.frontendSectionToggles || {
+  const toggles = systemSettings?.frontendSectionToggles || {
     about: true,
     projects: true,
     vision: true,
@@ -367,6 +373,7 @@ export default function App() {
 
 
   // Helper to wrap sections with Admin Controls
+  type FrontendSectionKey = keyof SystemSettings["frontendSectionToggles"];
   const renderAdminWrapper = (sectionKey: FrontendSectionKey | 'hero' | 'town_map', title: string, content: React.ReactNode) => {
     // hero and town_map cannot be hidden in this implementation
     const isToggleable = sectionKey !== 'hero' && sectionKey !== 'town_map';
@@ -386,7 +393,7 @@ export default function App() {
             <button 
               onClick={() => {
                 const newToggles = { ...toggles, [sectionKey]: !toggles[sectionKey as FrontendSectionKey] };
-                handleUpdateSettings({ ...systemSettings, frontendSectionToggles: newToggles });
+                setSystemSettings({ ...systemSettings, frontendSectionToggles: newToggles });
               }}
               className={`p-1.5 rounded-md flex items-center gap-1 text-xs font-bold ${isVisible ? 'bg-blue-50 text-blue-700 hover:bg-blue-100' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}`}
             >

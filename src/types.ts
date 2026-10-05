@@ -1,15 +1,19 @@
 export type UserRole = 'citizen' | 'recruiter' | 'workspace' | 'admin';
 
-export type CategoryType = 
-  | 'living_infrastructure' 
+export type CategoryType = string | 'living_infrastructure' 
   | 'living_environment'    
   | 'living_community'      
   | 'bustle_landscape'      
   | 'bustle_tourism'        
-  | 'other_concept';        
+  | 'other_concept'
+  | 'value_creation'
+  | 'improvement'
+  | 'traffic_walk'
+  | 'culture_event'
+  | 'youth_student'
+  | 'downtown_buzz';        
 
-export type AgeGroup = 
-  | 'under_10s'
+export type AgeGroup = string | 'under_10s'
   | '10s'
   | '20s'
   | '30s'
@@ -17,14 +21,22 @@ export type AgeGroup =
   | '50s'
   | '60s'
   | '70s'
-  | '80s_plus';
+  | '80s_plus'
+  | 'teens'
+  | 'twenties_thirties'
+  | 'forties_fifties'
+  | 'sixties_plus';
 
-export type ResidencyArea = 
-  | 'yanai_student'     
+export type ResidencyArea = string | 'yanai_student'     
   | 'commuter'          
   | 'downtown_resident' 
   | 'suburban_resident' 
-  | 'tourist_fan';      
+  | 'tourist_fan'
+  | 'downtown_station'
+  | 'shirakabe_area'
+  | 'school_commute'
+  | 'suburban_yanai'
+  | 'tourism_relation';      
 
 export type SubmissionStatus = 'pending' | 'approved' | 'in_review' | 'reflected' | 'rejected';
 

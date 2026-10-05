@@ -408,7 +408,7 @@ export const WorkspaceCalendar: React.FC = () => {
       {/* ========================================================= */}
       {viewMode === 'list' && (
         <div className="space-y-3">
-          {events.map(ev => {
+          {[...events].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()).map(ev => {
             const badge = getCategoryBadge(ev.category);
             const [y, m, d] = ev.date.split('-');
 

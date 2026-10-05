@@ -114,7 +114,12 @@ export const WorkspaceRoadmap: React.FC = () => {
   // Phases list state
   const [phases, setPhases] = useState<PhaseItem[]>(() => {
     const saved = localStorage.getItem('yanai_workspace_roadmap_phases');
-    return saved ? JSON.parse(saved) : INITIAL_PHASES;
+  const [isAiModalOpen, setIsAiModalOpen] = useState(false);
+  const [aiInputText, setAiInputText] = useState('');
+  const [isAiProcessing, setIsAiProcessing] = useState(false);
+
+    let parsed = null; try { parsed = saved ? JSON.parse(saved) : null; } catch(e) { parsed = null; }
+    return parsed || INITIAL_PHASES;
   });
 
   React.useEffect(() => {
@@ -123,6 +128,9 @@ export const WorkspaceRoadmap: React.FC = () => {
 
   // Selected phase for detail modal
   const [selectedPhaseDetail, setSelectedPhaseDetail] = useState<PhaseItem | null>(null);
+  const [isAiModalOpen, setIsAiModalOpen] = useState(false);
+  const [aiInputText, setAiInputText] = useState('');
+  const [isAiProcessing, setIsAiProcessing] = useState(false);
 
   // Add / Edit Phase Modal
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -728,6 +736,94 @@ export const WorkspaceRoadmap: React.FC = () => {
                 </div>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+
+      {/* AI Extraction Modal */}
+      {isAiModalOpen && (
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-in fade-in">
+          <div className="bg-white rounded-3xl max-w-2xl w-full p-6 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center">
+                  <Sparkles className="w-4 h-4" />
+                </div>
+                <h3 className="text-base font-bold text-slate-900">
+                  議事録・まとめから候補タスクを自動抽出
+                </h3>
+              </div>
+              <button onClick={() => setIsAiModalOpen(false)} className="text-slate-400 hover:text-slate-700">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <p className="text-xs text-slate-600">
+              会議の議事録や、ワークショップのまとめテキストを貼り付けてください。AIが次のアクションアイテム（タスク候補）を抽出し、ロードマップのプロセスカンバンに自動反映します。
+            </p>
+
+            <div className="space-y-3">
+              <textarea
+                rows={6}
+                value={aiInputText}
+                onChange={(e) => setAiInputText(e.target.value)}
+                placeholder="（例）今日のワークショップでは、高校生から「空き店舗でカフェをやりたい」という意見が多かった。次回までに保健所の許可条件を確認する。また、来月には商店街の店主たちと顔合わせの場を設ける必要がある。"
+                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-xs focus:ring-2 focus:ring-indigo-500 focus:outline-none resize-none"
+              />
+              
+              <div className="flex justify-end gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setIsAiModalOpen(false)}
+                  className="px-4 py-2 text-xs text-slate-600 hover:bg-slate-100 rounded-xl"
+                >
+                  キャンセル
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (!aiInputText.trim()) return;
+                    setIsAiProcessing(true);
+                    setTimeout(() => {
+                      setIsAiProcessing(false);
+                      setIsAiModalOpen(false);
+                      setAiInputText('');
+                      // Mock add to phase
+                      const newPhases = [...phases];
+                      newPhases[0].items.push({
+                        id: 'ai-gen-1',
+                        title: '保健所の許可条件の事前確認',
+                        status: 'not_started',
+                        dueDate: '2026-10-10'
+                      });
+                      newPhases[0].items.push({
+                        id: 'ai-gen-2',
+                        title: '商店街店主との顔合わせ企画',
+                        status: 'not_started',
+                        dueDate: '2026-10-25'
+                      });
+                      setPhases(newPhases);
+                      alert('AIが2件のアクションアイテムを抽出し、現在のフェーズに追加しました。');
+                    }, 1500);
+                  }}
+                  disabled={isAiProcessing || !aiInputText.trim()}
+                  className="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white text-xs font-bold rounded-xl shadow-xs cursor-pointer flex items-center gap-1.5 transition-all"
+                >
+                  {isAiProcessing ? (
+                    <>
+                      <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      <span>抽出中...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="w-3.5 h-3.5" />
+                      <span>AI抽出を実行</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}
