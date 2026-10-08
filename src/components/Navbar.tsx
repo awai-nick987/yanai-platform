@@ -20,6 +20,7 @@ import {
   LayoutDashboard,
   ExternalLink
 } from 'lucide-react';
+import { clearAuthSession } from '../services/authService';
 
 interface NavbarProps {
   currentRole: UserRole;
@@ -276,6 +277,21 @@ export const Navbar: React.FC<NavbarProps> = ({
               </button>
             )}
 
+            {/* 3.5. まちなか井戸端会議（表示設定が有効な場合のみ表示） */}
+            {toggles.idobata && (
+              <button
+                id="nav-idobata-btn"
+                onClick={() => handleNavClick('idobata')}
+                className={`px-2.5 xl:px-3 py-1.5 rounded-xl text-xs xl:text-sm font-semibold transition-all cursor-pointer whitespace-nowrap ${
+                  activeTab === 'idobata'
+                    ? 'text-amber-700 font-bold bg-amber-50 shadow-xs ring-1 ring-amber-300'
+                    : 'text-slate-700 hover:text-amber-800 hover:bg-amber-50/60'
+                }`}
+              >
+                まちなか井戸端会議
+              </button>
+            )}
+
             {/* 4. 要員募集 */}
             {toggles.recruitment && (
               <button
@@ -445,6 +461,18 @@ export const Navbar: React.FC<NavbarProps> = ({
               </button>
             )}
 
+            {toggles.idobata && (
+              <button
+                onClick={() => handleNavClick('idobata')}
+                className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium transition-colors ${
+                  activeTab === 'idobata' ? 'bg-amber-50 text-amber-800 font-bold' : 'text-slate-700 hover:bg-slate-50'
+                }`}
+              >
+                <span>まちなか井戸端会議</span>
+                <ChevronRight className="w-4 h-4 text-slate-400" />
+              </button>
+            )}
+
             {toggles.recruitment && (
               <button
                 onClick={() => handleNavClick('recruitment')}
@@ -561,6 +589,17 @@ export const Navbar: React.FC<NavbarProps> = ({
               }`}
             >
               ビジョン投票
+            </button>
+          )}
+
+          {toggles.idobata && (
+            <button
+              onClick={() => handleNavClick('idobata')}
+              className={`px-2.5 py-1 rounded-lg whitespace-nowrap font-medium text-xs ${
+                activeTab === 'idobata' ? 'bg-amber-600 text-white font-bold' : 'text-amber-800 bg-amber-50'
+              }`}
+            >
+              井戸端会議
             </button>
           )}
 

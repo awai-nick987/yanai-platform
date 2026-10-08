@@ -1,5 +1,5 @@
 import React from 'react';
-import { SystemSettings, UserRole } from '../types';
+import { SystemSettings, UserRole, SectionTextContent } from '../types';
 import { EyeOff, Eye, Edit3 } from 'lucide-react';
 import { Sparkles, MessageSquarePlus, BookOpen, Users, ArrowRight } from 'lucide-react';
 import heroBgImage from '../assets/images/yanai_shirakabe_street_1787402231236.jpg';
@@ -13,6 +13,9 @@ interface HeroSectionProps {
   systemSettings?: SystemSettings;
   currentRole?: UserRole;
   onUpdateSettings?: (settings: SystemSettings) => void;
+  customTexts?: SectionTextContent;
+  isInlineEditMode?: boolean;
+  onInlineChange?: (field: string, value: string) => void;
 }
 
 export const HeroSection: React.FC<HeroSectionProps> = ({
@@ -23,8 +26,19 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
   approvedSubmissionsCount,
   systemSettings,
   currentRole,
-  onUpdateSettings
+  onUpdateSettings,
+  customTexts,
+  isInlineEditMode = false,
+  onInlineChange
 }) => {
+  const safeCustom: SectionTextContent = customTexts || {};
+  const badgeText = safeCustom.badge || "柳井市まちなかまちづくりプロジェクト";
+  const mainTitle = safeCustom.title || "まちの未来を、\nみんなで共創しよう。";
+  const subtitleText = safeCustom.subtitle || "まちの未来がひらく、共創の瞬間。声が集まり、希望が形になる。";
+  const descriptionText = safeCustom.description || "対面ワークショップとオンライン参加の両方で、誰もが参加できるまちづくりを実現します。高校生・若者・子育て世代・シニアの皆さんの声を市政へ。";
+  const cta1 = safeCustom.ctaText1 || "意見を投稿する";
+  const cta2 = safeCustom.ctaText2 || "プロジェクト一覧";
+
   return (
     <div className="relative rounded-2xl sm:rounded-3xl overflow-hidden shadow-xl border border-slate-800/80 bg-slate-950 text-white flex items-center py-6 sm:py-10 md:py-14">
       {/* Background Image: Yanai Shirakabe Townscape with Goldfish Lanterns */}
@@ -56,9 +70,16 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
               </div>
             </div>
             <div className="space-y-1">
-              <div className="inline-flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1 rounded-full bg-white/10 backdrop-blur-md text-amber-300 text-xs sm:text-sm font-bold border border-white/15">
+              <div 
+                contentEditable={isInlineEditMode}
+                suppressContentEditableWarning
+                onBlur={(e) => onInlineChange && onInlineChange('badge', e.currentTarget.innerText)}
+                className={`inline-flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1 rounded-full bg-white/10 backdrop-blur-md text-amber-300 text-xs sm:text-sm font-bold border border-white/15 ${
+                  isInlineEditMode ? 'outline-dashed outline-2 outline-amber-400 bg-amber-500/20 cursor-text' : ''
+                }`}
+              >
                 <Sparkles className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-                <span>柳井市まちなかまちづくりプロジェクト</span>
+                <span>{badgeText}</span>
               </div>
               <p className="text-[10px] sm:text-xs font-semibold tracking-wider text-slate-300 uppercase">
                 YANAI Machinaka Machidukuri Project
@@ -67,20 +88,38 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
 
             {/* Main Headline */}
             <div className="space-y-1.5 sm:space-y-2">
-              <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold tracking-tight text-white leading-tight drop-shadow-sm">
-                まちの未来を、<br />
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-amber-200 to-yellow-100">
-                  みんなで共創しよう。
-                </span>
+              <h1 
+                contentEditable={isInlineEditMode}
+                suppressContentEditableWarning
+                onBlur={(e) => onInlineChange && onInlineChange('title', e.currentTarget.innerText)}
+                className={`text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold tracking-tight text-white leading-tight drop-shadow-sm whitespace-pre-line ${
+                  isInlineEditMode ? 'outline-dashed outline-2 outline-amber-400 bg-amber-500/10 p-1.5 rounded cursor-text' : ''
+                }`}
+              >
+                {mainTitle}
               </h1>
-              <p className="text-sm sm:text-base md:text-lg font-bold text-slate-100/90 leading-snug">
-                まちの未来がひらく、共創の瞬間。声が集まり、希望が形になる。
+              <p 
+                contentEditable={isInlineEditMode}
+                suppressContentEditableWarning
+                onBlur={(e) => onInlineChange && onInlineChange('subtitle', e.currentTarget.innerText)}
+                className={`text-sm sm:text-base md:text-lg font-bold text-slate-100/90 leading-snug ${
+                  isInlineEditMode ? 'outline-dashed outline-2 outline-amber-400 bg-amber-500/10 p-1 rounded cursor-text' : ''
+                }`}
+              >
+                {subtitleText}
               </p>
             </div>
 
             {/* Subcopy */}
-            <p className="text-xs sm:text-sm md:text-base text-slate-200 leading-relaxed max-w-2xl font-normal">
-              対面ワークショップとオンライン参加の両方で、誰もが参加できるまちづくりを実現します。高校生・若者・子育て世代・シニアの皆さんの声を市政へ。
+            <p 
+              contentEditable={isInlineEditMode}
+              suppressContentEditableWarning
+              onBlur={(e) => onInlineChange && onInlineChange('description', e.currentTarget.innerText)}
+              className={`text-xs sm:text-sm md:text-base text-slate-200 leading-relaxed max-w-2xl font-normal ${
+                isInlineEditMode ? 'outline-dashed outline-2 outline-amber-400 bg-amber-500/10 p-1 rounded cursor-text' : ''
+              }`}
+            >
+              {descriptionText}
             </p>
 
             {/* 3 Call-To-Action Buttons */}
@@ -92,7 +131,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
                 className="w-full sm:w-auto px-5 py-3 sm:px-6 sm:py-3.5 rounded-xl font-bold text-xs sm:text-sm md:text-base bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 hover:from-blue-500 hover:to-indigo-600 text-white shadow-lg shadow-indigo-900/40 hover:shadow-indigo-900/60 transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-98"
               >
                 <MessageSquarePlus className="w-4 h-4 shrink-0" />
-                <span className="whitespace-nowrap">意見を投稿する</span>
+                <span className="whitespace-nowrap">{cta1}</span>
               </button>
 
               {/* CTA 2: プロジェクトを見る */}
@@ -102,7 +141,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
                 className="w-full sm:w-auto px-5 py-3 sm:px-6 sm:py-3.5 rounded-xl font-bold text-xs sm:text-sm md:text-base bg-white/95 hover:bg-white text-slate-900 shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-98 border border-white/20"
               >
                 <BookOpen className="w-4 h-4 text-indigo-700 shrink-0" />
-                <span className="whitespace-nowrap">プロジェクト一覧</span>
+                <span className="whitespace-nowrap">{cta2}</span>
               </button>
 
               {/* CTA 3: ワークショップに参加する */}

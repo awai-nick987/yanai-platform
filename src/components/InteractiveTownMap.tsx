@@ -91,8 +91,67 @@ const YANAI_LANDMARKS = [
     lng: 132.1280, 
     type: 'port', 
     desc: '四国松山航路フェリー・周防大島連絡口' 
+  },
+  {
+    id: 'lm-7',
+    name: '柳井市役所 本庁舎',
+    lat: 33.9610,
+    lng: 132.1065,
+    type: 'facility',
+    desc: '行政・総合窓口・地域づくり推進課'
+  },
+  {
+    id: 'lm-8',
+    name: '柳井市文化福祉会館・図書館',
+    lat: 33.9645,
+    lng: 132.1070,
+    type: 'facility',
+    desc: '市民文化・生涯学習・地域交流拠点'
+  },
+  {
+    id: 'lm-9',
+    name: '古開作エリア（商業・住宅街）',
+    lat: 33.9580,
+    lng: 132.0980,
+    type: 'facility',
+    desc: '郊外型商業施設・ファミリー居住エリア'
+  },
+  {
+    id: 'lm-10',
+    name: '柳井津・天神社周辺',
+    lat: 33.9695,
+    lng: 132.1090,
+    type: 'heritage',
+    desc: '歴史的な路地空間と天神信仰の社'
   }
 ];
+
+/**
+ * 緯度経度から柳井市内の最寄りスポット・地区名を高精度に推定判定
+ */
+export const getEstimatedYanaiLocationName = (lat: number, lng: number): string => {
+  let closestName = '柳井市まちなかエリア';
+  let minDistance = Infinity;
+
+  for (const lm of YANAI_LANDMARKS) {
+    const dLat = lm.lat - lat;
+    const dLng = lm.lng - lng;
+    const dist = Math.sqrt(dLat * dLat + dLng * dLng);
+    if (dist < minDistance) {
+      minDistance = dist;
+      closestName = `${lm.name.split('（')[0].split('・')[0]}周辺`;
+    }
+  }
+
+  // 近接距離が約500m以内ならスポット名周辺、離れている場合は座標付記
+  if (minDistance < 0.005) {
+    return closestName;
+  } else if (minDistance < 0.015) {
+    return `${closestName} (${lat.toFixed(4)}, ${lng.toFixed(4)})`;
+  } else {
+    return `柳井市指定地点 (${lat.toFixed(4)}, ${lng.toFixed(4)})`;
+  }
+};
 
 // Available Map Tile Providers (100% Free, Official GSI & OpenStreetMap)
 type MapTileLayer = 'gsi_std' | 'gsi_pale' | 'gsi_photo' | 'osm';
@@ -132,6 +191,20 @@ export const InteractiveTownMap: React.FC<InteractiveTownMapProps> = ({
       return true;
     });
   }, [safeSubmissions, selectedCategory, selectedAgeFilter]);
+
+  const prevSubmissionsCountRef = useRef(submissions.length);
+
+  // 新規アイデア投稿が追加されたら、そのピンに自動フォーカス＆ポップアップ表示
+  useEffect(() => {
+    if (submissions.length > prevSubmissionsCountRef.current && submissions.length > 0) {
+      const newest = submissions[0]; // 最上位または最新
+      setSelectedPinId(newest.id);
+      if (mapInstanceRef.current && newest.lat && newest.lng) {
+        mapInstanceRef.current.flyTo([newest.lat, newest.lng], 17, { duration: 1.2 });
+      }
+    }
+    prevSubmissionsCountRef.current = submissions.length;
+  }, [submissions]);
 
   const selectedItem = safeSubmissions.find(s => s.id === selectedPinId) || filteredSubmissions[0];
 
@@ -489,22 +562,21 @@ export const InteractiveTownMap: React.FC<InteractiveTownMapProps> = ({
           </p>
         </div>
 
-        {/* Action Button: Add Pin / Idea */}
-        <div className="flex items-center gap-2 shrink-0">
-          <button
-            onClick={() => {
-              if (onOpenSubmitWithCoords) {
-                onOpenSubmitWithCoords(33.9680, 132.1075, '柳井市白壁の町並み周辺');
-              } else if (onAddNewLocationIdea) {
-                onAddNewLocationIdea();
-              }
-            }}
-            className="px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold bg-blue-600 hover:bg-blue-700 text-white shadow-xs transition-all flex items-center gap-2 cursor-pointer active:scale-98"
-          >
-            <PlusCircle className="w-4 h-4" />
-            <span>地図上に意見を投稿</span>
-          </button>
-        </div>
+          {/* Action Button: Add Pin / Idea */}
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              onClick={() => {
+                const defaultCenterPos = { lat: 33.9680, lng: 132.1075 };
+                setClickedCoord(defaultCenterPos);
+                handleJumpTo(defaultCenterPos.lat, defaultCenterPos.lng, 17);
+              }}
+              className="px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold bg-blue-600 hover:bg-blue-700 text-white shadow-xs transition-all flex items-center gap-2 cursor-pointer active:scale-98"
+              title="地図上にピン（📍）を配置し、場所を指定して投稿します"
+            >
+              <PlusCircle className="w-4 h-4" />
+              <span>地図上にピンを刺して投稿</span>
+            </button>
+          </div>
       </div>
 
       {/* Filter and Control Bar */}
@@ -743,41 +815,55 @@ export const InteractiveTownMap: React.FC<InteractiveTownMapProps> = ({
 
             {/* Clicked Location Notification Popup Toast */}
             {clickedCoord && (
-              <div className="absolute bottom-4 left-4 right-4 sm:left-auto sm:right-4 sm:w-80 z-30 bg-white/95 backdrop-blur-md p-3.5 rounded-2xl border border-blue-300 shadow-xl text-slate-900 animate-in fade-in slide-in-from-bottom-2">
-                <div className="flex items-start justify-between gap-2 mb-1.5">
-                  <div className="text-xs font-bold text-blue-900 flex items-center gap-1">
-                    <MapPin className="w-3.5 h-3.5 text-rose-500 shrink-0" />
-                    <span>指定した地点: {clickedCoord.lat.toFixed(4)}, {clickedCoord.lng.toFixed(4)}</span>
+              <div className="absolute bottom-4 left-4 right-4 sm:left-auto sm:right-4 sm:w-88 z-30 bg-white/95 backdrop-blur-md p-4 rounded-2xl border-2 border-blue-500 shadow-2xl text-slate-900 animate-in fade-in slide-in-from-bottom-2">
+                <div className="flex items-start justify-between gap-2 mb-2">
+                  <div className="flex items-center gap-1.5">
+                    <span className="w-6 h-6 rounded-lg bg-rose-500 text-white flex items-center justify-center text-xs shrink-0 shadow-xs">
+                      📍
+                    </span>
+                    <div>
+                      <div className="text-xs font-black text-slate-900">
+                        {getEstimatedYanaiLocationName(clickedCoord.lat, clickedCoord.lng)}
+                      </div>
+                      <div className="text-[10px] text-slate-500 font-mono">
+                        座標: {clickedCoord.lat.toFixed(5)}, {clickedCoord.lng.toFixed(5)}
+                      </div>
+                    </div>
                   </div>
                   <button 
                     onClick={() => setClickedCoord(null)}
-                    className="text-slate-400 hover:text-slate-700 text-xs font-bold cursor-pointer"
+                    className="p-1 text-slate-400 hover:text-slate-700 text-xs font-bold rounded-lg hover:bg-slate-100 cursor-pointer"
+                    title="ピン指定を解除"
                   >
-                    ×
+                    ✕
                   </button>
                 </div>
-                <p className="text-[11px] text-slate-600 mb-2.5">
-                  この指定場所に新しいアイデア・要望をプロットしますか？
-                </p>
+
+                <div className="p-2 rounded-xl bg-amber-50 border border-amber-200 text-[11px] text-amber-900 leading-relaxed mb-3">
+                  <span className="font-bold">💡 ピンの調整:</span> 地図上の赤ピン（📍）はドラッグして位置を微調整できます。投稿時はこのピンの正確な位置が最優先されます。
+                </div>
+
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => {
+                      const detectedName = getEstimatedYanaiLocationName(clickedCoord.lat, clickedCoord.lng);
                       if (onOpenSubmitWithCoords) {
-                        onOpenSubmitWithCoords(clickedCoord.lat, clickedCoord.lng, `柳井市指定地点 (${clickedCoord.lat.toFixed(4)}, ${clickedCoord.lng.toFixed(4)})`);
+                        onOpenSubmitWithCoords(clickedCoord.lat, clickedCoord.lng, detectedName);
                       } else if (onAddNewLocationIdea) {
                         onAddNewLocationIdea();
                       }
                       setClickedCoord(null);
                     }}
-                    className="flex-1 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition-all text-center cursor-pointer shadow-xs"
+                    className="flex-1 py-2 px-3 bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 text-white rounded-xl text-xs font-bold transition-all text-center cursor-pointer shadow-md hover:shadow-lg active:scale-95 flex items-center justify-center gap-1.5"
                   >
-                    ここにアイデアを投稿
+                    <span>このピン位置でアイデア投稿</span>
+                    <ChevronRight className="w-3.5 h-3.5" />
                   </button>
                   <button
                     onClick={() => setClickedCoord(null)}
-                    className="px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-medium cursor-pointer"
+                    className="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-medium cursor-pointer"
                   >
-                    閉じる
+                    解除
                   </button>
                 </div>
               </div>

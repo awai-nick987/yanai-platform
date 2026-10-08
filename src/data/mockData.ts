@@ -790,9 +790,12 @@ export const INITIAL_SYSTEM_SETTINGS: SystemSettings = {
     progressTimeline: true
   },
   frontendSectionToggles: {
+    hero: true,
     about: true,
     projects: true,
     vision: true,
+    town_map: true,
+    idobata: false,             // まちなか井戸端会議（初期状態: 非表示）
     recruitment: true,
     submit_idea: true,
     citizen_dashboard: true,
@@ -801,6 +804,56 @@ export const INITIAL_SYSTEM_SETTINGS: SystemSettings = {
   heroCustomTexts: {
     floatingSubTitle: "まちなか共創・進捗リアルタイム",
     floatingMainTitle: "柳井市 夢プラン策定状況"
+  },
+  customSectionTexts: {
+    hero: {
+      badge: "柳井市まちなかまちづくりプロジェクト",
+      title: "まちの未来を、みんなで共創しよう。",
+      subtitle: "まちの未来がひらく、共創の瞬間。声が集まり、希望が形になる。",
+      description: "対面ワークショップとオンライン参加の両方で、誰もが参加できるまちづくりを実現します。高校生・若者・子育て世代・シニアの皆さんの声を市政へ。",
+      ctaText1: "意見を投稿する",
+      ctaText2: "プロジェクトを見る"
+    },
+    about: {
+      title: "柳井市まちなかまちづくりプロジェクトとは",
+      subtitle: "令和8年度策定の「中心市街地活性化基本計画」に向けて、行政と市民・高校生・事業者が対等な立場で未来をつくる共創事業です。",
+      badge: "PROJECT PURPOSE"
+    },
+    projects: {
+      title: "市民発・共創実証実験（PoC）プロジェクト",
+      subtitle: "アイデアをアイデアで終わらせない。市民と行政、高校生が現場で試行錯誤する社会実験プロジェクトです。",
+      badge: "REAL-ACTION"
+    },
+    vision: {
+      title: "柳井市 まちなか未来ビジョン投票",
+      subtitle: "あなたが共感する、10年後の柳井の姿に1票を。市民の投票結果が次期基本計画の重点施策へと反映されます。",
+      badge: "CITIZEN VOTE"
+    },
+    town_map: {
+      title: "柳井市まちなか アイデアプロットマップ",
+      subtitle: "国土地理院の住宅・町字地図上に町名・字名を表示。地図上にピンを刺して具体的なアイデアや改善点を投稿できます。",
+      badge: "MAP EXPLORER"
+    },
+    idobata: {
+      title: "まちなか井戸端会議 アーカイブ",
+      subtitle: "柳井市「まちなか夢プラン策定プロジェクト」助走期間（全6回シリーズ）の対話記録と住民アイデア集",
+      badge: "助走期記録 (R7完結)"
+    },
+    recruitment: {
+      title: "イベント・実証実験サポーター募集",
+      subtitle: "まちづくりは、誰でも気軽に一歩を踏み出せる。あなたの得意なことや興味を活かして、実証実験のクルーやボランティアとして参加しませんか？",
+      badge: "JOIN US"
+    },
+    submit_idea: {
+      title: "まちなかアイデア・ご意見投稿フォーム",
+      subtitle: "日々の暮らしの中での「こうなったらいいな」「ここを直してほしい」を投稿してください。高校生からシニアまで、どなたでも歓迎です。",
+      badge: "SUBMIT IDEA"
+    },
+    citizen_dashboard: {
+      title: "市民の声・オープンデータ分析ダッシュボード",
+      subtitle: "集まったすべての市民意見・投票結果を透明性高く集計・可視化しています。",
+      badge: "DATA INSIGHTS"
+    }
   }
 };
 

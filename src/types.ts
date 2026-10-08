@@ -356,12 +356,25 @@ export interface CMSArticle {
 export type DevicePreviewMode = 'auto' | 'mobile' | 'tablet' | 'desktop';
 
 export type FrontendSectionKey = 
+  | 'hero'              // ヒーローヘッダー
   | 'about'             // 柳井市まちなかまちづくりプロジェクトとは
   | 'projects'          // プロジェクト
   | 'vision'            // ビジョン投票
+  | 'town_map'          // まちなか共創マップ
+  | 'idobata'           // まちなか井戸端会議
   | 'recruitment'       // 要員募集
   | 'submit_idea'       // 意見投稿
   | 'citizen_dashboard';// ダッシュボード
+
+export interface SectionTextContent {
+  badge?: string;
+  title?: string;
+  subtitle?: string;
+  description?: string;
+  ctaText1?: string;
+  ctaText2?: string;
+  [key: string]: string | undefined;
+}
 
 export interface SystemSettings {
   batchExecutionTime: string; // e.g. "03:00"
@@ -379,9 +392,12 @@ export interface SystemSettings {
     progressTimeline: boolean;
   };
   frontendSectionToggles: {
+    hero: boolean;              // ヒーローヘッダー
     about: boolean;             // 柳井市まちなかまちづくりプロジェクトとは
     projects: boolean;          // プロジェクト
     vision: boolean;            // ビジョン投票
+    town_map?: boolean;         // まちなか共創マップ
+    idobata: boolean;           // まちなか井戸端会議（移管ページ）
     recruitment: boolean;       // 要員募集
     submit_idea: boolean;       // 意見投稿
     citizen_dashboard: boolean; // ダッシュボード
@@ -391,6 +407,7 @@ export interface SystemSettings {
     floatingSubTitle: string;
     floatingMainTitle: string;
   };
+  customSectionTexts?: Record<string, SectionTextContent>;
 }
 
 export interface DemographicFilter {

@@ -7,7 +7,7 @@
  */
 
 export interface SectionConfigItem {
-  id: 'hero' | 'projects' | 'vision' | 'town_map' | 'recruitment' | 'submit_idea' | 'citizen_dashboard' | 'about';
+  id: 'hero' | 'projects' | 'vision' | 'town_map' | 'recruitment' | 'submit_idea' | 'citizen_dashboard' | 'about' | 'idobata';
   name: string;
   enabled: boolean;
 }
@@ -41,6 +41,7 @@ export const SITE_CONFIG = {
     { id: 'projects', name: '実証実験（PoC）プロジェクト', enabled: true },
     { id: 'vision', name: 'まちの未来ビジョン投票', enabled: true },
     { id: 'town_map', name: 'まちなか共創マップ', enabled: true },
+    { id: 'idobata', name: 'まちなか井戸端会議（助走期記録）', enabled: false }, // 初期状態: 非表示
     { id: 'recruitment', name: '共創サポーター・要員募集', enabled: true },
     { id: 'submit_idea', name: 'アイデア・ご意見投稿', enabled: true },
     { id: 'citizen_dashboard', name: '市民投稿オープンデータ分析', enabled: true }
@@ -52,6 +53,7 @@ export const SITE_CONFIG = {
     { key: 'about', label: '基本計画とは' },
     { key: 'projects', label: '実証プロジェクト' },
     { key: 'vision', label: 'ビジョン投票' },
+    { key: 'idobata', label: 'まちなか井戸端会議', toggleKey: 'idobata' }, // 非表示制御対応
     { key: 'recruitment', label: 'サポーター募集' },
     { key: 'submit_idea', label: 'アイデア投稿' },
     { key: 'citizen_dashboard', label: 'データ分析' },

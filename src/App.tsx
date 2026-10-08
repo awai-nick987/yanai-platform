@@ -31,11 +31,14 @@ import { VisionVoteSection } from './components/VisionVoteSection';
 import { RecruitmentSection } from './components/RecruitmentSection';
 import { RecruitmentAdmin } from './components/RecruitmentAdmin';
 import { InteractiveTownMap } from './components/InteractiveTownMap';
+import { IdobataArchiveSection } from './components/IdobataArchiveSection';
 import { TwoAxisMatrixDashboard } from './components/TwoAxisMatrixDashboard';
 import { WorkspaceKanban } from './components/WorkspaceKanban';
 import { AdminModeration } from './components/AdminModeration';
 import { LoginModal } from './components/LoginModal';
 import { Footer } from './components/Footer';
+import { AccessDeniedView } from './components/AccessDeniedView';
+import { getStoredAuthSession, clearAuthSession, AuthSession } from './services/authService';
 
 import { 
   subscribeToSubmissions, 
@@ -53,6 +56,8 @@ import { PocProjectDetailModal } from './components/PocProjectDetailModal';
 import { PocProjectEditorModal } from './components/PocProjectEditorModal';
 import { PocReportWizardModal } from './components/PocReportWizardModal';
 import { WorkshopPopupModal } from './components/WorkshopPopupModal';
+import { AdminFrontendToolbar } from './components/admin/AdminFrontendToolbar';
+import { SectionTextEditorModal } from './components/admin/SectionTextEditorModal';
 
 import { Building2, Eye, EyeOff, Edit3, 
   MapPin, 
@@ -67,7 +72,10 @@ import { Building2, Eye, EyeOff, Edit3,
   ExternalLink,
   Info,
   Calendar,
-  ArrowRight
+  ArrowRight,
+  Layout,
+  Save,
+  RotateCcw
 } from 'lucide-react';
 import { SITE_CONFIG } from './config/siteConfig';
 
@@ -143,7 +151,21 @@ export default function App() {
   const [reportingPocProject, setReportingPocProject] = useState<PocProject | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
+  // Admin Frontend Inline & Section Text Editing States
+  const [isInlineEditMode, setIsInlineEditMode] = useState(false);
+  const [editingSectionModal, setEditingSectionModal] = useState<{ key: string; title: string } | null>(null);
+  const [pendingCustomTexts, setPendingCustomTexts] = useState<Record<string, any>>({});
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+
   
+  // Restore Auth Session on Mount
+  useEffect(() => {
+    const session = getStoredAuthSession();
+    if (session && session.role) {
+      setCurrentRole(session.role);
+    }
+  }, []);
+
   // Firebase Data Subscription
   useEffect(() => {
     initializeDefaultData(INITIAL_SUBMISSIONS, INITIAL_VISION_OPTIONS);
@@ -245,12 +267,15 @@ export default function App() {
       status: 'approved'
     };
 
+    // 即時に先頭へ追加して地図・ダッシュボードと連動
+    setSubmissions(prev => [created, ...prev]);
+
     // Save to Firestore
     saveSubmission(created).then(() => {
-      showToast('貴重なご意見ありがとうございます！データ集計に反映されました。');
+      showToast('貴重なご意見ありがとうございます！地図ピンとデータ集計に即時反映されました。');
     }).catch(err => {
       console.error(err);
-      showToast('保存に失敗しました。');
+      showToast('ローカルに保存されました（Firebase同期待機中）');
     });
   };
 
@@ -372,43 +397,151 @@ export default function App() {
   };
 
 
+  // ==========================================
+  // Admin Frontend Customization Handlers
+  // ==========================================
+  const handleToggleSection = (sectionKey: any) => {
+    const currentVal = toggles[sectionKey as keyof typeof toggles] ?? true;
+    const newToggles = { ...toggles, [sectionKey]: !currentVal };
+    const updated = { ...systemSettings, frontendSectionToggles: newToggles };
+    setSystemSettings(updated);
+    showToast(`「${sectionKey}」を${!currentVal ? '【公開】' : '【非公開】'}に設定しました`);
+  };
+
+  const handleSaveSectionTexts = (sectionKey: string, updatedTexts: any) => {
+    const existing = systemSettings.customSectionTexts || {};
+    const updated = {
+      ...systemSettings,
+      customSectionTexts: {
+        ...existing,
+        [sectionKey]: {
+          ...(existing[sectionKey] || {}),
+          ...updatedTexts
+        }
+      }
+    };
+    setSystemSettings(updated);
+    showToast(`「${sectionKey}」のテキストを保存・反映しました`);
+  };
+
+  const handleInlineChange = (sectionKey: string, field: string, value: string) => {
+    setPendingCustomTexts(prev => ({
+      ...prev,
+      [sectionKey]: {
+        ...(prev[sectionKey] || {}),
+        [field]: value
+      }
+    }));
+    setHasUnsavedChanges(true);
+  };
+
+  const handleSaveInlineChanges = () => {
+    const existing = systemSettings.customSectionTexts || {};
+    const merged = { ...existing };
+    Object.keys(pendingCustomTexts).forEach(secKey => {
+      merged[secKey] = {
+        ...(merged[secKey] || {}),
+        ...pendingCustomTexts[secKey]
+      };
+    });
+
+    const updated = {
+      ...systemSettings,
+      customSectionTexts: merged
+    };
+    setSystemSettings(updated);
+    setPendingCustomTexts({});
+    setHasUnsavedChanges(false);
+    showToast('編集したテキストを保存・反映しました');
+  };
+
+  const handleResetInlineChanges = () => {
+    setPendingCustomTexts({});
+    setHasUnsavedChanges(false);
+    showToast('未保存のテキスト変更を破棄しました');
+  };
+
   // Helper to wrap sections with Admin Controls
-  type FrontendSectionKey = keyof SystemSettings["frontendSectionToggles"];
-  const renderAdminWrapper = (sectionKey: FrontendSectionKey | 'hero' | 'town_map', title: string, content: React.ReactNode) => {
-    // hero and town_map cannot be hidden in this implementation
-    const isToggleable = sectionKey !== 'hero' && sectionKey !== 'town_map';
-    const isVisible = isToggleable ? toggles[sectionKey as FrontendSectionKey] : true;
+  const renderAdminWrapper = (sectionKey: string, title: string, content: React.ReactNode, isToggleable = true) => {
+    const isVisible = isToggleable ? (toggles[sectionKey as keyof typeof toggles] ?? true) : true;
     
+    // For non-admin (citizen, etc.), simply return null if hidden
     if (currentRole !== 'admin') {
       return isVisible ? content : null;
     }
 
-    // Admin View
+    // Admin View with Prominent Header Controls
     return (
-      <div className="relative group">
-        <div className="absolute -top-4 right-4 z-50 p-2 bg-white rounded-lg shadow-md border border-slate-200 flex items-center gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
-          <span className="text-xs font-bold text-slate-600">{title}</span>
-          
-          {isToggleable && (
-            <button 
-              onClick={() => {
-                const newToggles = { ...toggles, [sectionKey]: !toggles[sectionKey as FrontendSectionKey] };
-                setSystemSettings({ ...systemSettings, frontendSectionToggles: newToggles });
-              }}
-              className={`p-1.5 rounded-md flex items-center gap-1 text-xs font-bold ${isVisible ? 'bg-blue-50 text-blue-700 hover:bg-blue-100' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}`}
-            >
-              {isVisible ? <><Eye className="w-3.5 h-3.5"/> 公開中</> : <><EyeOff className="w-3.5 h-3.5"/> 非公開</>}
-            </button>
-          )}
+      <div className={`relative transition-all duration-300 rounded-3xl ${
+        !isVisible 
+          ? 'border-2 border-dashed border-rose-400/80 bg-rose-50/20 p-2 sm:p-4 my-4' 
+          : 'border border-transparent'
+      }`}>
+        {/* Prominent Admin Section Header Bar */}
+        <div className="bg-slate-900/95 backdrop-blur-md text-white rounded-2xl px-3.5 sm:px-4 py-2 sm:py-2.5 mb-3 sm:mb-4 flex flex-wrap items-center justify-between gap-2 shadow-md border border-slate-700/80">
+          <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+            <span className="text-[10px] font-black tracking-wider uppercase px-2 py-0.5 rounded bg-amber-500 text-slate-950">
+              SECTION
+            </span>
+            <span className="text-xs sm:text-sm font-bold text-slate-100">
+              {title}
+            </span>
+            <span className="text-slate-600">|</span>
+            <span className={`inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full ${
+              isVisible 
+                ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' 
+                : 'bg-rose-500/20 text-rose-300 border border-rose-500/30'
+            }`}>
+              {isVisible ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
+              <span>{isVisible ? '公開中（市民に表示）' : '非公開（市民非表示）'}</span>
+            </span>
+          </div>
 
-          <button 
-            onClick={() => alert(`「${title}」のテキスト・画像編集機能は現在開発中（フェーズ2実装予定）です。`)}
-            className="p-1.5 rounded-md bg-emerald-50 text-emerald-700 hover:bg-emerald-100 flex items-center gap-1 text-xs font-bold"
-          >
-            <Edit3 className="w-3.5 h-3.5"/> 編集
-          </button>
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            {/* Toggle Visibility Button */}
+            {isToggleable && (
+              <button 
+                type="button"
+                onClick={() => handleToggleSection(sectionKey)}
+                className={`px-2.5 py-1 rounded-xl flex items-center gap-1 text-xs font-bold transition-all cursor-pointer ${
+                  isVisible 
+                    ? 'bg-slate-800 hover:bg-rose-900/50 text-slate-200 hover:text-rose-200 border border-slate-700' 
+                    : 'bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-black shadow-xs'
+                }`}
+                title={isVisible ? 'このセクションを非公開にする' : 'このセクションを公開する'}
+              >
+                {isVisible ? <><EyeOff className="w-3 h-3 text-rose-400"/> 非公開にする</> : <><Eye className="w-3 h-3 text-slate-950"/> 公開する</>}
+              </button>
+            )}
+
+            {/* Edit Text Button (Opens Modal) */}
+            <button 
+              type="button"
+              onClick={() => setEditingSectionModal({ key: sectionKey, title })}
+              className="px-2.5 py-1 rounded-xl bg-blue-600 hover:bg-blue-500 text-white flex items-center gap-1 text-xs font-bold shadow-xs transition-all cursor-pointer"
+              title="このセクションのテキスト・文言を編集"
+            >
+              <Edit3 className="w-3 h-3"/>
+              <span>文言編集</span>
+            </button>
+          </div>
         </div>
-        <div className={`transition-all duration-300 ${!isVisible ? 'opacity-40 grayscale-[30%]' : ''}`}>
+
+        {/* Notice Banner if Hidden */}
+        {!isVisible && (
+          <div className="mb-3 px-3.5 py-2 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-800 text-xs font-bold flex items-center justify-between gap-2">
+            <span>⚠️ このセクションは現在【非公開】に設定されています。一般市民（未ログイン時）には表示されません。</span>
+            <button
+              onClick={() => handleToggleSection(sectionKey)}
+              className="text-[11px] underline hover:text-rose-950 cursor-pointer"
+            >
+              今すぐ公開に戻す
+            </button>
+          </div>
+        )}
+
+        {/* Section Content */}
+        <div className={`transition-all duration-300 ${!isVisible ? 'opacity-60 grayscale-[20%]' : ''}`}>
           {content}
         </div>
       </div>
@@ -463,6 +596,20 @@ export default function App() {
         systemSettings={systemSettings}
       />
 
+      {/* Admin Frontend Control Bar (When logged in as admin and viewing Home) */}
+      {currentRole === 'admin' && activeTab === 'home' && (
+        <AdminFrontendToolbar
+          systemSettings={systemSettings}
+          onToggleSection={handleToggleSection}
+          isInlineEditMode={isInlineEditMode}
+          onToggleInlineEditMode={() => setIsInlineEditMode(!isInlineEditMode)}
+          hasUnsavedChanges={hasUnsavedChanges}
+          onSaveInlineChanges={handleSaveInlineChanges}
+          onResetInlineChanges={handleResetInlineChanges}
+          onOpenSectionTextEditor={(secKey, secTitle) => setEditingSectionModal({ key: secKey, title: secTitle })}
+        />
+      )}
+
       {/* 2. Main Body Content Area (Fully responsive across Mobile, Tablet, PC) */}
       <main className="flex-1 w-full max-w-7xl mx-auto px-3.5 sm:px-6 lg:px-8 py-5 sm:py-8 lg:py-10 space-y-8 sm:space-y-12">
           
@@ -484,6 +631,9 @@ export default function App() {
                           systemSettings={systemSettings}
                           currentRole={currentRole}
                           onUpdateSettings={setSystemSettings}
+                          customTexts={systemSettings.customSectionTexts?.hero}
+                          isInlineEditMode={isInlineEditMode}
+                          onInlineChange={(field, val) => handleInlineChange('hero', field, val)}
                         />);
                     case 'about': return renderAdminWrapper('about', 'このプラットフォームについて', <AboutSection
                           key="about"
@@ -507,7 +657,7 @@ export default function App() {
                           onVoteVision={handleVoteVision}
                         />);
                     case 'town_map':
-                      return (
+                      return renderAdminWrapper('town_map', '柳井市まちなか アイデアプロットマップ', (
                         <InteractiveTownMap
                           key="town_map"
                           submissions={submissions}
@@ -523,14 +673,23 @@ export default function App() {
                             setSubmissions(submissions.map(s => s.id === id ? { 
                               ...s, 
                               upvotes: type === 'up' ? s.upvotes + 1 : s.upvotes,
-                              downvotes: type === 'down' ? (s.downvotes || 0) + 1 : s.downvotes
+                              downvotes: type === 'down' ? (sub.downvotes || 0) + 1 : sub.downvotes
                             } : s));
                             showToast(type === 'up' ? 'アイデアに共感しました！' : 'ご意見を記録しました');
                           }}
                           onSelectSubmissionForDetails={(sub) => setSelectedDetailSubmission(sub)}
                           onAddNewLocationIdea={() => setIsSubmitModalOpen(true)}
                         />
-                      );
+                      ));
+                    case 'idobata':
+                      return renderAdminWrapper('idobata', 'まちなか井戸端会議（助走期記録）', (
+                        <IdobataArchiveSection
+                          key="idobata"
+                          customTexts={systemSettings.customSectionTexts?.idobata}
+                          onNavigateToProjects={() => setActiveTab('projects')}
+                          onNavigateToIdeas={() => setActiveTab('submit_idea')}
+                        />
+                      ));
                     case 'recruitment': return renderAdminWrapper('recruitment', 'イベント・WS募集', <RecruitmentSection
                           key="recruitment"
                           posts={recruitmentPosts}
@@ -543,13 +702,13 @@ export default function App() {
                           isRecruiter={currentRole === 'recruiter' || currentRole === 'admin'}
                         />);
                     case 'submit_idea':
-                      return toggles.submit_idea ? (
+                      return renderAdminWrapper('submit_idea', 'アイデア・ご意見投稿フォーム', (
                         <IdeaSubmissionSection
                           key="submit_idea"
                           onAddNewIdea={handleAddNewIdea}
                           submissionsCount={submissions.length}
                         />
-                      ) : null;
+                      ));
                     case 'citizen_dashboard': return renderAdminWrapper('citizen_dashboard', '市民向け公開ダッシュボード', <CitizenDashboard
                           key="citizen_dashboard"
                           submissions={submissions}
@@ -615,6 +774,28 @@ export default function App() {
             />
           )}
 
+          {/* TAB: idobata (まちなか井戸端会議 独立アーカイブタブ) */}
+          {activeTab === 'idobata' && (
+            <div className="space-y-8">
+              {!toggles.idobata && currentRole === 'admin' && (
+                <div className="p-3.5 rounded-2xl bg-amber-50 border border-amber-300 text-amber-900 text-xs font-bold flex items-center justify-between">
+                  <span>⚠️ このページは現在【非公開】設定中です。一般市民のメニューには表示されていません。</span>
+                  <button
+                    onClick={() => handleToggleSection('idobata')}
+                    className="px-3 py-1 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-xs font-bold"
+                  >
+                    今すぐ公開する
+                  </button>
+                </div>
+              )}
+              <IdobataArchiveSection
+                customTexts={systemSettings.customSectionTexts?.idobata}
+                onNavigateToProjects={() => setActiveTab('projects')}
+                onNavigateToIdeas={() => setActiveTab('submit_idea')}
+              />
+            </div>
+          )}
+
           {/* TAB: recruitment */}
           {activeTab === 'recruitment' && (
             <RecruitmentSection
@@ -670,92 +851,132 @@ export default function App() {
 
           {/* TAB: matrix (Admin / Member restricted) */}
           {activeTab === 'matrix' && (
-            <TwoAxisMatrixDashboard
-              submissions={submissions}
-              onUpdateCoordinates={(id, f, e) => {
-                setSubmissions(submissions.map(s => s.id === id ? { ...s, feasibilityScore: f, expectationScore: e } : s));
-              }}
-              onBatchAnalyze={() => {
-                showToast('夜間バッチAI分析（2軸マトリックス）を実行しました');
-              }}
-              isAnalyzing={false}
-            />
+            currentRole !== 'admin' && currentRole !== 'workspace' ? (
+              <AccessDeniedView
+                requiredRole="workspace"
+                title="２軸マトリックス分析へのアクセス制限"
+                description="２軸マトリックス分析（AIスコアリング・優先度マッピング）は、推進メンバーおよび行政管理者の認証が必要です。"
+                onOpenLoginModal={() => setIsLoginModalOpen(true)}
+                onBackToHome={() => setActiveTab('home')}
+              />
+            ) : (
+              <TwoAxisMatrixDashboard
+                submissions={submissions}
+                onUpdateCoordinates={(id, f, e) => {
+                  setSubmissions(submissions.map(s => s.id === id ? { ...s, feasibilityScore: f, expectationScore: e } : s));
+                }}
+                onBatchAnalyze={() => {
+                  showToast('夜間バッチAI分析（2軸マトリックス）を実行しました');
+                }}
+                isAnalyzing={false}
+              />
+            )
           )}
 
           {/* TAB: admin (Admin Role only) */}
           {activeTab === 'admin' && (
-            <AdminModeration
-              submissions={submissions}
-              onUpdateStatus={handleUpdateSubmissionStatus}
-              systemSettings={systemSettings}
-              onUpdateSettings={setSystemSettings}
-              cmsArticles={cmsArticles}
-              onCreateArticle={handleCreateArticle}
-              onOpenExportModal={() => setIsExportModalOpen(true)}
-              members={members}
-              onUpdateMemberRole={handleUpdateMemberRole}
-              onAddMember={handleAddMember}
-              onDeleteMember={handleDeleteMember}
-              onImportSubmissions={handleImportSubmissions}
-              onImportTasks={handleImportTasks}
-              onNavigateTab={(tab) => setActiveTab(tab as any)}
-            />
+            currentRole !== 'admin' ? (
+              <AccessDeniedView
+                requiredRole="admin"
+                title="管理者ポータルへのアクセス制限"
+                description="管理者画面（市民提案承認・モデレーション・メンバー権限管理・サイト設定）は、統括管理者アカウントでのログインが必要です。"
+                onOpenLoginModal={() => setIsLoginModalOpen(true)}
+                onBackToHome={() => setActiveTab('home')}
+              />
+            ) : (
+              <AdminModeration
+                submissions={submissions}
+                onUpdateStatus={handleUpdateSubmissionStatus}
+                systemSettings={systemSettings}
+                onUpdateSettings={setSystemSettings}
+                cmsArticles={cmsArticles}
+                onCreateArticle={handleCreateArticle}
+                onOpenExportModal={() => setIsExportModalOpen(true)}
+                members={members}
+                onUpdateMemberRole={handleUpdateMemberRole}
+                onAddMember={handleAddMember}
+                onDeleteMember={handleDeleteMember}
+                onImportSubmissions={handleImportSubmissions}
+                onImportTasks={handleImportTasks}
+                onNavigateTab={(tab) => setActiveTab(tab as any)}
+              />
+            )
           )}
 
-          {/* TAB: workspace (Member Role) */}
+          {/* TAB: workspace (Member / Admin restricted) */}
           {activeTab === 'workspace' && (
-            <WorkspaceKanban
-              tasks={workspaceTasks}
-              submissions={submissions}
-              currentRole={currentRole}
-              onNavigateTab={(tab) => setActiveTab(tab as any)}
-              onSwitchRole={(role) => setCurrentRole(role)}
-              onUpdateTaskStage={(id, stage) => {
-                setWorkspaceTasks(workspaceTasks.map(t => t.id === id ? { ...t, stage } : t));
-                showToast('タスクのステージを更新しました');
-              }}
-              onUpdateTaskStatus={(id, stage) => {
-                setWorkspaceTasks(workspaceTasks.map(t => t.id === id ? { ...t, stage } : t));
-                showToast('タスクのステージを更新しました');
-              }}
-              onAddTask={(task) => {
-                const newTask: WorkspaceTask = {
-                  id: `task-${Date.now()}`,
-                  title: task.title || '新規タスク',
-                  category: task.category || 'まちなか回遊',
-                  stage: (task as any).stage || 'ideas_pool',
-                  priority: task.priority || 'medium',
-                  assignee: task.assignee || '市民ワーキンググループ',
-                  dueDate: task.dueDate || '2026-09-15',
-                  notes: task.notes || '',
-                  linkedSubmissionId: task.linkedSubmissionId
-                };
-                setWorkspaceTasks([...workspaceTasks, newTask]);
-                showToast('新規タスクを追加しました');
-              }}
-              systemSettings={systemSettings}
-              onUpdateSettings={setSystemSettings}
-              cmsArticles={cmsArticles}
-              onCreateArticle={handleCreateArticle}
-              onOpenExportModal={() => setIsExportModalOpen(true)}
-              members={members}
-              onUpdateMemberRole={handleUpdateMemberRole}
-              onAddMember={handleAddMember}
-              onDeleteMember={handleDeleteMember}
-              onUpdateSubmissionStatus={handleUpdateSubmissionStatus}
-              recruitmentPosts={recruitmentPosts}
-              onCreateRecruitmentPost={handleCreateRecruitmentPost}
-              onImportSubmissions={handleImportSubmissions}
-              onImportTasks={handleImportTasks}
-            />
+            currentRole !== 'admin' && currentRole !== 'workspace' ? (
+              <AccessDeniedView
+                requiredRole="workspace"
+                title="共創ワークスペースへのアクセス制限"
+                description="共創ワークスペース（カンバンタスク管理・進捗ロードマップ・部会カレンダー）は、推進メンバーまたは行政管理者のログインが必要です。"
+                onOpenLoginModal={() => setIsLoginModalOpen(true)}
+                onBackToHome={() => setActiveTab('home')}
+              />
+            ) : (
+              <WorkspaceKanban
+                tasks={workspaceTasks}
+                submissions={submissions}
+                currentRole={currentRole}
+                onNavigateTab={(tab) => setActiveTab(tab as any)}
+                onSwitchRole={(role) => setCurrentRole(role)}
+                onUpdateTaskStage={(id, stage) => {
+                  setWorkspaceTasks(workspaceTasks.map(t => t.id === id ? { ...t, stage } : t));
+                  showToast('タスクのステージを更新しました');
+                }}
+                onUpdateTaskStatus={(id, stage) => {
+                  setWorkspaceTasks(workspaceTasks.map(t => t.id === id ? { ...t, stage } : t));
+                  showToast('タスクのステージを更新しました');
+                }}
+                onAddTask={(task) => {
+                  const newTask: WorkspaceTask = {
+                    id: `task-${Date.now()}`,
+                    title: task.title || '新規タスク',
+                    category: task.category || 'まちなか回遊',
+                    stage: (task as any).stage || 'ideas_pool',
+                    priority: task.priority || 'medium',
+                    assignee: task.assignee || '市民ワーキンググループ',
+                    dueDate: task.dueDate || '2026-09-15',
+                    notes: task.notes || '',
+                    linkedSubmissionId: task.linkedSubmissionId
+                  };
+                  setWorkspaceTasks([...workspaceTasks, newTask]);
+                  showToast('新規タスクを追加しました');
+                }}
+                systemSettings={systemSettings}
+                onUpdateSettings={setSystemSettings}
+                cmsArticles={cmsArticles}
+                onCreateArticle={handleCreateArticle}
+                onOpenExportModal={() => setIsExportModalOpen(true)}
+                members={members}
+                onUpdateMemberRole={handleUpdateMemberRole}
+                onAddMember={handleAddMember}
+                onDeleteMember={handleDeleteMember}
+                onUpdateSubmissionStatus={handleUpdateSubmissionStatus}
+                recruitmentPosts={recruitmentPosts}
+                onCreateRecruitmentPost={handleCreateRecruitmentPost}
+                onImportSubmissions={handleImportSubmissions}
+                onImportTasks={handleImportTasks}
+              />
+            )
           )}
 
-          {/* TAB: recruiter_admin (Recruiter Role) */}
+          {/* TAB: recruiter_admin (Recruiter / Admin restricted) */}
           {activeTab === 'recruiter_admin' && (
-            <RecruitmentAdmin
-              posts={recruitmentPosts}
-              onCreatePost={handleCreateRecruitmentPost}
-            />
+            currentRole !== 'admin' && currentRole !== 'recruiter' ? (
+              <AccessDeniedView
+                requiredRole="recruiter"
+                title="要員・募集管理画面へのアクセス制限"
+                description="要員募集・ボランティア管理画面は、募集担当者または行政管理者のログインが必要です。"
+                onOpenLoginModal={() => setIsLoginModalOpen(true)}
+                onBackToHome={() => setActiveTab('home')}
+              />
+            ) : (
+              <RecruitmentAdmin
+                posts={recruitmentPosts}
+                onCreatePost={handleCreateRecruitmentPost}
+              />
+            )
           )}
 
         </main>
@@ -777,6 +998,11 @@ export default function App() {
         currentRole={currentRole}
         onSelectRole={setCurrentRole}
         onNavigateToTab={setActiveTab}
+        members={members}
+        onLoginSuccess={(session) => {
+          setCurrentRole(session.role);
+          showToast(`「${session.name}」として認証ログインしました`);
+        }}
       />
 
       {/* Idea Submission Modal */}
@@ -870,6 +1096,19 @@ export default function App() {
             setIsWorkshopPopupOpen(false);
             setActiveTab('recruitment');
           }}
+        />
+      )}
+
+      {/* Section Text Editor Modal (Admin Frontend Customization) */}
+      {editingSectionModal && (
+        <SectionTextEditorModal
+          isOpen={!!editingSectionModal}
+          onClose={() => setEditingSectionModal(null)}
+          sectionKey={editingSectionModal.key}
+          sectionTitle={editingSectionModal.title}
+          initialTexts={systemSettings.customSectionTexts?.[editingSectionModal.key]}
+          defaultTexts={INITIAL_SYSTEM_SETTINGS.customSectionTexts?.[editingSectionModal.key]}
+          onSave={handleSaveSectionTexts}
         />
       )}
 

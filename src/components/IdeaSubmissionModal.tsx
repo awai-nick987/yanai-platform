@@ -21,17 +21,17 @@ interface IdeaSubmissionModalProps {
   onSubmitIdea: (newIdea: Partial<IdeaSubmission>) => void;
   defaultLocationName?: string;
   defaultLat?: number;
-  hasCoords?: boolean;
   defaultLng?: number;
+  hasCoords?: boolean;
 }
 
 export const IdeaSubmissionModal: React.FC<IdeaSubmissionModalProps> = ({
   isOpen,
   onClose,
   onSubmitIdea,
-  defaultLocationName = '白壁の町並み・やない西蔵周辺',
-  defaultLat = 33.9678,
-  defaultLng = 132.1075,
+  defaultLocationName = '',
+  defaultLat,
+  defaultLng,
   hasCoords = false
 }) => {
   const [title, setTitle] = useState('');
@@ -43,9 +43,8 @@ export const IdeaSubmissionModal: React.FC<IdeaSubmissionModalProps> = ({
   const [organization, setOrganization] = useState('');
   const [ageGroup, setAgeGroup] = useState<AgeGroup>('teens');
   const [residency, setResidency] = useState<ResidencyArea>('school_commute');
-  const [locationName, setLocationName] = useState(defaultLocationName);
+  const [locationName, setLocationName] = useState('');
   const [tagsInput, setTagsInput] = useState('高校生提案, まちなか賑わい, 白壁景観');
-
 
   const PLACEHOLDERS = [
     "【高校生目線】どんな場所で、誰と、何を実現したい？\n例：柳井学園の生徒や地元商店街と連携して、放課後や週末に金魚ちょうちんの下で地元スイーツを楽しめる空間を作りたいです。",
@@ -56,10 +55,11 @@ export const IdeaSubmissionModal: React.FC<IdeaSubmissionModalProps> = ({
 
   useEffect(() => {
     if (isOpen) {
-      setLocationName(defaultLocationName);
+      // ピン指定がある場合は渡された地点名（または空欄）をセット、ピンなしの場合は完全に空白
+      setLocationName(hasCoords && defaultLocationName ? defaultLocationName : '');
       setPlaceholder(PLACEHOLDERS[Math.floor(Math.random() * PLACEHOLDERS.length)]);
     }
-  }, [isOpen, defaultLocationName]);
+  }, [isOpen, defaultLocationName, hasCoords]);
 
   if (!isOpen) return null;
 
@@ -72,6 +72,13 @@ export const IdeaSubmissionModal: React.FC<IdeaSubmissionModalProps> = ({
       .map(t => t.trim().replace(/^#/, ''))
       .filter(Boolean);
 
+    // 投稿時の地点名と座標の決定（ピン指定があればピン座標を絶対優先）
+    const finalLat = (hasCoords && defaultLat) ? defaultLat : 33.9678;
+    const finalLng = (hasCoords && defaultLng) ? defaultLng : 132.1075;
+    const finalLocationName = (hasCoords && defaultLocationName)
+      ? defaultLocationName
+      : (locationName.trim() || '柳井市中心市街地');
+
     const newIdea: Partial<IdeaSubmission> = {
       title,
       category,
@@ -80,9 +87,9 @@ export const IdeaSubmissionModal: React.FC<IdeaSubmissionModalProps> = ({
       organization: organization.trim() || undefined,
       ageGroup,
       residency,
-      locationName,
-      lat: defaultLat,
-      lng: defaultLng,
+      locationName: finalLocationName,
+      lat: finalLat,
+      lng: finalLng,
       tags: tags.length > 0 ? tags : ['まちなか共創', '柳井夢プラン'],
       expectationScore: 85,
       feasibilityScore: 78,
@@ -235,23 +242,45 @@ export const IdeaSubmissionModal: React.FC<IdeaSubmissionModalProps> = ({
 
           {/* Location and Demographic Attributes Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
-            {!hasCoords ? (
-            <div className="col-span-1 sm:col-span-2">
-              <label className="block text-xs font-bold text-slate-800 mb-1">
-                対象の場所・エリア <span className="text-slate-500 font-normal ml-1">【任意】</span>
-              </label>
-              <div className="flex flex-col sm:flex-row gap-2 items-start sm:items-center">
-                <input
-                  type="text"
-                  value={locationName}
-                  onChange={(e) => setLocationName(e.target.value)}
-                  placeholder="具体的な場所（例: 白壁通り、駅前広場など）"
-                  className="w-full sm:flex-1 text-xs px-3 py-2 border border-slate-300 rounded-lg bg-slate-50 font-medium focus:ring-2 focus:ring-indigo-500 focus:outline-hidden"
-                />
+            {hasCoords && defaultLat && defaultLng ? (
+              <div className="col-span-1 sm:col-span-2 p-3.5 rounded-2xl bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200">
+                <div className="flex items-center justify-between mb-1">
+                  <div className="flex items-center gap-1.5 text-xs font-bold text-blue-950">
+                    <span className="w-5 h-5 rounded-md bg-rose-500 text-white flex items-center justify-center text-xs shadow-xs">
+                      📍
+                    </span>
+                    <span>マップ指定ピン位置（最優先連動中）</span>
+                  </div>
+                  <span className="text-[10px] font-bold text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-full border border-emerald-300">
+                    ピン座標優先
+                  </span>
+                </div>
+                <div className="text-xs text-slate-800 font-bold mt-1">
+                  {locationName || '柳井市中心市街地 指定地点'}
+                </div>
+                <div className="text-[10px] text-slate-500 font-mono mt-0.5">
+                  緯度: {defaultLat.toFixed(5)} / 経度: {defaultLng.toFixed(5)}（地図上の刺したピン位置にそのまま保存・プロットされます）
+                </div>
               </div>
-              <p className="text-[10px] text-slate-500 mt-1">※ マップでピンを刺さなかった場合の概ねのエリア指定としてテキスト入力（任意）が可能です。</p>
-            </div>
-          ) : null}
+            ) : (
+              <div className="col-span-1 sm:col-span-2">
+                <label className="block text-xs font-bold text-slate-800 mb-1">
+                  対象の場所・エリア <span className="text-slate-500 font-normal ml-1">【任意】</span>
+                </label>
+                <div className="flex flex-col sm:flex-row gap-2 items-start sm:items-center">
+                  <input
+                    type="text"
+                    value={locationName}
+                    onChange={(e) => setLocationName(e.target.value)}
+                    placeholder="具体的な場所（例: 白壁通り、駅前広場など）※空欄でも投稿可能"
+                    className="w-full text-xs px-3.5 py-2.5 border border-slate-300 rounded-xl bg-slate-50 font-medium focus:ring-2 focus:ring-indigo-500 focus:outline-hidden"
+                  />
+                </div>
+                <p className="text-[10px] text-slate-500 mt-1">
+                  ※ 地図上でピンを刺していない場合のみ入力可能です（任意項目です。空白のままでも投稿できます）。
+                </p>
+              </div>
+            )}
 
             <div>
               <label className="block text-xs font-bold text-slate-800 mb-1">
