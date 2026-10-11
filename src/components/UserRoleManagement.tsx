@@ -37,6 +37,7 @@ import {
 interface UserRoleManagementProps {
   members: TeamMember[];
   onUpdateMemberRole: (memberId: string, newRole: UserRole) => void;
+  onUpdateMember?: (updatedMember: TeamMember) => void;
   onAddMember?: (newMember: Partial<TeamMember>) => void;
   onDeleteMember?: (memberId: string) => void;
 }
@@ -44,6 +45,7 @@ interface UserRoleManagementProps {
 export const UserRoleManagement: React.FC<UserRoleManagementProps> = ({
   members,
   onUpdateMemberRole,
+  onUpdateMember,
   onAddMember,
   onDeleteMember
 }) => {
@@ -156,6 +158,67 @@ export const UserRoleManagement: React.FC<UserRoleManagementProps> = ({
   const [newRoleTitle, setNewRoleTitle] = useState('推進メンバー');
   const [newUserRole, setNewUserRole] = useState<UserRole>('workspace');
   const [newCategory, setNewCategory] = useState<TeamMember['departmentCategory']>('city_gov');
+
+  // Edit Member Modal State
+  const [editingMember, setEditingMember] = useState<TeamMember | null>(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editName, setEditName] = useState('');
+  const [editEmail, setEditEmail] = useState('');
+  const [editOrg, setEditOrg] = useState('');
+  const [editRoleTitle, setEditRoleTitle] = useState('');
+  const [editUserRole, setEditUserRole] = useState<UserRole>('workspace');
+  const [editCategory, setEditCategory] = useState<TeamMember['departmentCategory']>('city_gov');
+  const [editAssignedWgs, setEditAssignedWgs] = useState('');
+  const [editPhone, setEditPhone] = useState('');
+  const [editBio, setEditBio] = useState('');
+
+  const handleOpenEditModal = (member: TeamMember) => {
+    setEditingMember(member);
+    setEditName(member.name);
+    setEditEmail(member.email);
+    setEditOrg(member.organization);
+    setEditRoleTitle(member.role);
+    setEditUserRole(member.userRole || 'workspace');
+    setEditCategory(member.departmentCategory || 'city_gov');
+    setEditAssignedWgs(member.assignedWgs ? member.assignedWgs.join(', ') : '');
+    setEditPhone(member.phone || '');
+    setEditBio(member.bio || '');
+    setIsEditModalOpen(true);
+  };
+
+  const handleSaveEditMember = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingMember || !editName.trim() || !editEmail.trim()) return;
+
+    const wgs = editAssignedWgs
+      .split(',')
+      .map(w => w.trim())
+      .filter(w => w.length > 0);
+
+    const updated: TeamMember = {
+      ...editingMember,
+      name: editName.trim(),
+      email: editEmail.trim(),
+      organization: editOrg.trim(),
+      role: editRoleTitle.trim(),
+      userRole: editUserRole,
+      departmentCategory: editCategory,
+      assignedWgs: wgs.length > 0 ? wgs : ['全体統括'],
+      phone: editPhone.trim() || undefined,
+      bio: editBio.trim() || undefined
+    };
+
+    if (onUpdateMember) {
+      onUpdateMember(updated);
+    }
+    if (onUpdateMemberRole && updated.userRole !== editingMember.userRole) {
+      onUpdateMemberRole(updated.id, updated.userRole);
+    }
+
+    notify(`${updated.name} さんのメンバー情報を更新しました`);
+    setIsEditModalOpen(false);
+    setEditingMember(null);
+  };
 
   const ROLE_BADGES: Record<UserRole, { label: string; bg: string; text: string; border: string; desc: string }> = {
     admin: {
@@ -768,20 +831,33 @@ export const UserRoleManagement: React.FC<UserRoleManagementProps> = ({
 
                     {/* Actions */}
                     <td className="py-4 px-4 text-right">
-                      {onDeleteMember && (
+                      <div className="flex items-center justify-end gap-1.5">
                         <button
-                          onClick={() => {
-                            if (window.confirm(`${member.name} さんの権限を解除し、メンバー一覧から削除しますか？`)) {
-                              onDeleteMember(member.id);
-                              notify(`${member.name} さんを削除しました`);
-                            }
-                          }}
-                          className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
-                          title="メンバー権限削除"
+                          type="button"
+                          onClick={() => handleOpenEditModal(member)}
+                          className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-bold text-slate-700 hover:text-indigo-600 bg-slate-100 hover:bg-indigo-50 rounded-lg transition-colors cursor-pointer"
+                          title="メンバー情報を編集"
                         >
-                          <Trash2 className="w-4 h-4" />
+                          <Edit3 className="w-3.5 h-3.5" />
+                          <span>編集</span>
                         </button>
-                      )}
+
+                        {onDeleteMember && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (window.confirm(`${member.name} さんの権限を解除し、メンバー一覧から削除しますか？`)) {
+                                onDeleteMember(member.id);
+                                notify(`${member.name} さんを削除しました`);
+                              }
+                            }}
+                            className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
+                            title="メンバー権限削除"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        )}
+                      </div>
                     </td>
 
                   </tr>
@@ -905,6 +981,169 @@ export const UserRoleManagement: React.FC<UserRoleManagementProps> = ({
                   className="px-5 py-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-xl shadow-xs cursor-pointer"
                 >
                   権限を付与して登録
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* EDIT MEMBER MODAL */}
+      {isEditModalOpen && editingMember && (
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-in fade-in">
+          <div className="bg-white rounded-3xl max-w-xl w-full p-6 sm:p-8 shadow-2xl border border-slate-200 space-y-5 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div className="flex items-center gap-2">
+                <Edit3 className="w-5 h-5 text-indigo-600" />
+                <h3 className="text-lg font-bold text-slate-900">
+                  メンバー情報の編集
+                </h3>
+                <span className="text-xs px-2 py-0.5 rounded bg-slate-100 text-slate-600 font-mono">
+                  ID: {editingMember.id}
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsEditModalOpen(false);
+                  setEditingMember(null);
+                }}
+                className="text-slate-400 hover:text-slate-600 text-lg leading-none cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveEditMember} className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">氏名 <span className="text-rose-500">*</span></label>
+                  <input
+                    type="text"
+                    required
+                    value={editName}
+                    onChange={(e) => setEditName(e.target.value)}
+                    placeholder="例: 山口 太郎"
+                    className="w-full px-3.5 py-2 border border-slate-300 rounded-xl text-xs outline-none focus:border-indigo-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">メールアドレス <span className="text-rose-500">*</span></label>
+                  <input
+                    type="email"
+                    required
+                    value={editEmail}
+                    onChange={(e) => setEditEmail(e.target.value)}
+                    placeholder="例: t-yamaguchi@city.yanai.yamaguchi.jp"
+                    className="w-full px-3.5 py-2 border border-slate-300 rounded-xl text-xs outline-none focus:border-indigo-500"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">所属組織</label>
+                  <input
+                    type="text"
+                    value={editOrg}
+                    onChange={(e) => setEditOrg(e.target.value)}
+                    placeholder="例: 柳井市役所 都市計画課"
+                    className="w-full px-3.5 py-2 border border-slate-300 rounded-xl text-xs outline-none focus:border-indigo-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">担当役職・役割</label>
+                  <input
+                    type="text"
+                    value={editRoleTitle}
+                    onChange={(e) => setEditRoleTitle(e.target.value)}
+                    placeholder="例: WG-1推進担当"
+                    className="w-full px-3.5 py-2 border border-slate-300 rounded-xl text-xs outline-none focus:border-indigo-500"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">付与するシステム権限</label>
+                  <select
+                    value={editUserRole}
+                    onChange={(e) => setEditUserRole(e.target.value as UserRole)}
+                    className="w-full px-3.5 py-2 border border-slate-300 rounded-xl text-xs font-bold outline-none focus:border-indigo-500 cursor-pointer"
+                  >
+                    <option value="admin">管理者 (Admin) - 全権限</option>
+                    <option value="workspace">ワークスペース (WG) - 推進メンバー</option>
+                    <option value="recruiter">募集管理 (Recruiter) - 要員公募</option>
+                    <option value="citizen">一般市民 (Citizen) - 閲覧・投稿</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">属性区分</label>
+                  <select
+                    value={editCategory}
+                    onChange={(e) => setEditCategory(e.target.value as any)}
+                    className="w-full px-3.5 py-2 border border-slate-300 rounded-xl text-xs outline-none focus:border-indigo-500 cursor-pointer"
+                  >
+                    <option value="city_gov">行政・事務局</option>
+                    <option value="business_chamber">民間・商工会議所</option>
+                    <option value="youth_education">高校生・若者</option>
+                    <option value="citizen_volunteer">市民ボランティア</option>
+                    <option value="expert_advisor">専門家・アドバイザー</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">電話番号（任意）</label>
+                  <input
+                    type="tel"
+                    value={editPhone}
+                    onChange={(e) => setEditPhone(e.target.value)}
+                    placeholder="例: 0820-22-2111"
+                    className="w-full px-3.5 py-2 border border-slate-300 rounded-xl text-xs outline-none focus:border-indigo-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">担当WG（カンマ区切り）</label>
+                  <input
+                    type="text"
+                    value={editAssignedWgs}
+                    onChange={(e) => setEditAssignedWgs(e.target.value)}
+                    placeholder="例: WG1 魅力発信, WG2 商店街活性化"
+                    className="w-full px-3.5 py-2 border border-slate-300 rounded-xl text-xs outline-none focus:border-indigo-500"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">自己紹介 / プロフィールメモ（任意）</label>
+                <textarea
+                  rows={3}
+                  value={editBio}
+                  onChange={(e) => setEditBio(e.target.value)}
+                  placeholder="メンバーの専門分野、担当業務などのメモを入力..."
+                  className="w-full px-3.5 py-2 border border-slate-300 rounded-xl text-xs outline-none focus:border-indigo-500 resize-none"
+                />
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-4 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsEditModalOpen(false);
+                    setEditingMember(null);
+                  }}
+                  className="px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-100 rounded-xl cursor-pointer"
+                >
+                  キャンセル
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shadow-xs cursor-pointer flex items-center gap-1.5"
+                >
+                  <CheckCircle2 className="w-4 h-4" />
+                  <span>変更を保存</span>
                 </button>
               </div>
             </form>

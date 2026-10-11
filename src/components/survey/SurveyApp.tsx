@@ -34,6 +34,8 @@ import {
   Lightbulb,
   ChevronRight,
   FileText,
+  ExternalLink,
+  Loader2,
 } from "lucide-react";
 import { ColumnMapping, SurveyRow } from "../../types/survey";
 import { parseRawText, detectColumnMapping, buildSurveyRows } from "../../utils/parser";
@@ -51,13 +53,25 @@ import { RawDataModal } from "./RawDataModal";
 import { CorrelationAnalysisView } from "./CorrelationAnalysisView";
 import { CustomPivotTable } from "./CustomPivotTable";
 import { AnalysisGuideModal } from "./AnalysisGuideModal";
+import { 
+  getSurveyConfig, 
+  saveSurveyConfig, 
+  getCachedSurveyData, 
+  saveCachedSurveyData, 
+  fetchSurveySheetData,
+  SurveyConfig 
+} from "../../services/surveySyncService";
 
-type TabType = "home" | "correlations" | "pivot" | "charts" | "all";
+type TabType = "home" | "correlations" | "pivot" | "charts" | "form" | "all";
 
 export function SurveyApp() {
-  const [headers, setHeaders] = useState<string[]>([]);
-  const [rawRows, setRawRows] = useState<string[][]>([]);
-  const [mapping, setMapping] = useState<ColumnMapping>({
+  // キャッシュまたは初期値からデータを復元
+  const initialCached = useMemo(() => getCachedSurveyData(), []);
+  const initialConfig = useMemo(() => getSurveyConfig(), []);
+
+  const [headers, setHeaders] = useState<string[]>(() => initialCached?.headers || []);
+  const [rawRows, setRawRows] = useState<string[][]>(() => initialCached?.rows || []);
+  const [mapping, setMapping] = useState<ColumnMapping>(() => initialCached?.mapping || {
     q1: 1,
     q2: 2,
     q3: 3,
@@ -68,7 +82,11 @@ export function SurveyApp() {
     q8: 8,
     q9: 9,
   });
-  const [dataSourceName, setDataSourceName] = useState<string>("");
+  const [dataSourceName, setDataSourceName] = useState<string>(() => initialCached?.sourceName || "");
+  const [surveyConfig, setSurveyConfig] = useState<SurveyConfig>(initialConfig);
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [syncStatusMessage, setSyncStatusMessage] = useState<string | null>(null);
+
   const [isMapperOpen, setIsMapperOpen] = useState(false);
   const [isRawModalOpen, setIsRawModalOpen] = useState(false);
   const [isGuideOpen, setIsGuideOpen] = useState(false);
@@ -87,10 +105,54 @@ export function SurveyApp() {
   const [aiMarkdown, setAiMarkdown] = useState<string | null>(null);
   const [isAiLoading, setIsAiLoading] = useState(false);
 
-  // Production mode: Start blank. Removed sample data.
+  // 最新データのフェッチ関数
+  const handleRefreshLatestData = async (silent: boolean = false) => {
+    const config = getSurveyConfig();
+    if (!config.sheetUrl) {
+      if (!silent) setSyncStatusMessage("⚠️ GoogleスプレッドシートのURLが未設定です");
+      return;
+    }
+
+    if (!silent) setIsSyncing(true);
+    try {
+      const result = await fetchSurveySheetData(config.sheetUrl);
+      setHeaders(result.headers);
+      setRawRows(result.rows);
+      setMapping(result.mapping);
+      setDataSourceName(result.sourceName);
+      const updatedConfig = getSurveyConfig();
+      setSurveyConfig(updatedConfig);
+      if (!silent) {
+        setSyncStatusMessage(`✅ 最新データ（全 ${result.rows.length} 件）を同期・反映しました`);
+        setTimeout(() => setSyncStatusMessage(null), 4000);
+      }
+    } catch (err: any) {
+      if (!silent) {
+        setSyncStatusMessage(`同期エラー: ${err.message || 'データ取得に失敗しました'}`);
+        setTimeout(() => setSyncStatusMessage(null), 5000);
+      }
+    } finally {
+      if (!silent) setIsSyncing(false);
+    }
+  };
+
+  // 初回マウント時の自動同期＆バックグラウンドポーリング
   useEffect(() => {
-    // Intentionally left blank for production so users import their own data
-  }, []);
+    // 1. 初回マウント時：URLがあれば最新データを自動更新
+    if (surveyConfig.sheetUrl) {
+      handleRefreshLatestData(true);
+    }
+
+    // 2. 定期自動ポーリング（デフォルト60秒ごと）
+    if (!surveyConfig.autoSync || !surveyConfig.sheetUrl) return;
+
+    const intervalMs = Math.max(15, surveyConfig.syncIntervalSec || 60) * 1000;
+    const timer = setInterval(() => {
+      handleRefreshLatestData(true);
+    }, intervalMs);
+
+    return () => clearInterval(timer);
+  }, [surveyConfig.sheetUrl, surveyConfig.autoSync, surveyConfig.syncIntervalSec]);
 
   // When data is imported via Google Sheets, Excel upload, or paste
   const handleDataLoaded = (
@@ -103,6 +165,8 @@ export function SurveyApp() {
     setDataSourceName(sourceName);
     const detected = detectColumnMapping(newHeaders);
     setMapping(detected);
+    saveCachedSurveyData(newHeaders, newRows, detected, sourceName);
+    setSurveyConfig(getSurveyConfig());
     setAiMarkdown(null); // Reset custom AI text on new data import
     // Reset filters
     setFilterJichikai("all");
@@ -285,6 +349,13 @@ export function SurveyApp() {
       icon: BarChart3,
     },
     {
+      id: "form",
+      label: "Googleフォーム回答",
+      subLabel: "アンケート直接入力",
+      badge: surveyConfig.embedUrl ? "連携中" : "未設定",
+      icon: ExternalLink,
+    },
+    {
       id: "all",
       label: "全セクション",
       subLabel: "一括表示・印刷",
@@ -327,6 +398,26 @@ export function SurveyApp() {
 
             {/* Desktop / Tablet Actions */}
             <div className="hidden lg:flex items-center gap-2">
+              {/* Auto Sync & Refresh Button */}
+              {surveyConfig.sheetUrl && (
+                <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" title="自動同期中"></span>
+                  <span className="text-[11px] text-slate-600 font-medium">
+                    自動同期中
+                    {surveyConfig.lastSyncTime ? ` (${surveyConfig.lastSyncTime.split(' ')[1] || ''})` : ''}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => handleRefreshLatestData(false)}
+                    disabled={isSyncing}
+                    className="p-1 text-slate-500 hover:text-blue-600 rounded transition-colors cursor-pointer"
+                    title="今すぐ最新データを再取得してダッシュボードに反映"
+                  >
+                    <RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? 'animate-spin text-blue-600' : ''}`} />
+                  </button>
+                </div>
+              )}
+
               <button
                 id="btn-open-guide-modal"
                 type="button"
@@ -358,7 +449,7 @@ export function SurveyApp() {
                 }`}
               >
                 <FileSpreadsheet className="w-3.5 h-3.5 text-blue-700" />
-                <span>データ取り込み</span>
+                <span>Google連携 / 取り込み</span>
                 {isImporterOpen ? (
                   <ChevronUp className="w-3.5 h-3.5 text-blue-600" />
                 ) : (
@@ -1033,7 +1124,89 @@ export function SurveyApp() {
             <ChartsDashboard summary={summary} />
           </div>
         )}
+
+        {/* View Section 5: Google Form Direct Embed View */}
+        {activeViewTab === "form" && (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-base sm:text-lg font-bold text-slate-900 flex items-center gap-2">
+                  <ExternalLink className="w-5 h-5 text-blue-700" />
+                  <span>Googleフォーム アンケート回答画面</span>
+                </h2>
+                <p className="text-xs text-slate-500">
+                  回答が送信されると、紐付けられたGoogleスプレッドシートを通じて自動的にダッシュボードへ反映されます。
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={handleGoHome}
+                className="text-xs text-blue-700 hover:underline flex items-center gap-1 font-semibold"
+              >
+                <Home className="w-3.5 h-3.5" />
+                <span>ホームへ戻る</span>
+              </button>
+            </div>
+
+            {surveyConfig.embedUrl ? (
+              <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs">
+                <div className="p-3 bg-slate-50 border-b border-slate-200 flex items-center justify-between text-xs">
+                  <span className="font-medium text-slate-700 truncate max-w-md">
+                    埋め込みURL: {surveyConfig.embedUrl}
+                  </span>
+                  <a
+                    href={surveyConfig.formUrl || surveyConfig.embedUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 text-blue-600 hover:underline font-bold"
+                  >
+                    <span>別タブで開く</span>
+                    <ExternalLink className="w-3 h-3" />
+                  </a>
+                </div>
+                <iframe
+                  src={surveyConfig.embedUrl}
+                  width="100%"
+                  height="900"
+                  frameBorder="0"
+                  marginHeight={0}
+                  marginWidth={0}
+                  className="w-full min-h-[700px] border-0"
+                  title="Googleフォーム回答"
+                >
+                  読み込んでいます…
+                </iframe>
+              </div>
+            ) : (
+              <div className="bg-white rounded-2xl border border-slate-200 p-8 text-center space-y-4">
+                <div className="w-16 h-16 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mx-auto">
+                  <FileSpreadsheet className="w-8 h-8" />
+                </div>
+                <h3 className="text-base font-bold text-slate-900">
+                  GoogleフォームのURLがまだ設定されていません
+                </h3>
+                <p className="text-xs text-slate-500 max-w-md mx-auto">
+                  右上の「Google連携 / 取り込み」ボタンをクリックして、GoogleフォームのURL（通常URLまたは共有URL）を入力してください。自動的に埋め込み表示されます。
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setIsImporterOpen(true)}
+                  className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl shadow-xs transition cursor-pointer"
+                >
+                  GoogleフォームURLを設定する
+                </button>
+              </div>
+            )}
+          </div>
+        )}
       </main>
+
+      {/* Sync Status Toast Notification */}
+      {syncStatusMessage && (
+        <div className="fixed bottom-16 right-6 z-50 bg-slate-900/95 text-white px-4 py-2.5 rounded-xl shadow-lg border border-slate-700 text-xs font-bold animate-in fade-in slide-in-from-bottom-2">
+          {syncStatusMessage}
+        </div>
+      )}
 
       {/* Mobile Bottom Navigation Bar (Fixed bottom for Smartphones) */}
       <nav className="sm:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200 shadow-lg px-2 py-1 flex items-center justify-around">

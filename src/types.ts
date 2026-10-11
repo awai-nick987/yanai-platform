@@ -408,6 +408,13 @@ export interface SystemSettings {
     floatingMainTitle: string;
   };
   customSectionTexts?: Record<string, SectionTextContent>;
+  // Googleフォーム & アンケート連携・自動更新設定
+  googleFormUrl?: string;       // Googleフォーム回答用URL / 共有URL
+  googleFormEmbedUrl?: string;  // 埋め込み用URL (embedded=true)
+  surveySheetUrl?: string;      // Googleフォームの回答スプレッドシートURL
+  autoSyncEnabled?: boolean;    // 自動同期ON/OFF (デフォルトtrue)
+  autoSyncIntervalSec?: number; // 自動更新間隔（秒、デフォルト60秒）
+  lastSurveySyncTime?: string;  // 最終同期時刻
 }
 
 export interface DemographicFilter {

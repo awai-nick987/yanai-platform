@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { CategoryType, AgeGroup, ResidencyArea, IdeaSubmission } from '../types';
-import { MessageSquarePlus, Send, MapPin, CheckCircle2 } from 'lucide-react';
+import { MessageSquarePlus, Send, MapPin, CheckCircle2, ExternalLink, FileSpreadsheet } from 'lucide-react';
+import { getSurveyConfig } from '../services/surveySyncService';
 
 interface IdeaSubmissionSectionProps {
   onAddNewIdea: (idea: Partial<IdeaSubmission>) => void;
@@ -11,6 +12,10 @@ export const IdeaSubmissionSection: React.FC<IdeaSubmissionSectionProps> = ({
   onAddNewIdea,
   submissionsCount
 }) => {
+  const surveyConfig = getSurveyConfig();
+  const [submissionMode, setSubmissionMode] = useState<'web' | 'google_form'>(
+    surveyConfig.embedUrl ? 'google_form' : 'web'
+  );
   const [gender, setGender] = useState('');
   const [age, setAge] = useState<string>('');
   const [category, setCategory] = useState<string>('');
@@ -57,8 +62,73 @@ export const IdeaSubmissionSection: React.FC<IdeaSubmissionSectionProps> = ({
           </p>
         </div>
 
+        {/* Mode Switch Tabs (If Google Form embedUrl exists) */}
+        {surveyConfig.embedUrl && (
+          <div className="flex justify-center mb-6">
+            <div className="inline-flex p-1 bg-slate-100 rounded-2xl border border-slate-200">
+              <button
+                type="button"
+                onClick={() => setSubmissionMode('google_form')}
+                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                  submissionMode === 'google_form'
+                    ? 'bg-blue-600 text-white shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                <FileSpreadsheet className="w-3.5 h-3.5" />
+                <span>Googleフォームで回答</span>
+                <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${
+                  submissionMode === 'google_form' ? 'bg-blue-500 text-white' : 'bg-slate-200 text-slate-700'
+                }`}>公式連携</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setSubmissionMode('web')}
+                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                  submissionMode === 'web'
+                    ? 'bg-white text-slate-900 shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                <MessageSquarePlus className="w-3.5 h-3.5 text-blue-600" />
+                <span>簡易Webフォーム</span>
+              </button>
+            </div>
+          </div>
+        )}
+
         <div className="bg-slate-50 border border-slate-200 rounded-3xl p-6 sm:p-10 shadow-sm max-w-3xl mx-auto">
-          {submitted ? (
+          {submissionMode === 'google_form' && surveyConfig.embedUrl ? (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between text-xs text-slate-600 pb-2 border-b border-slate-200">
+                <span className="font-bold">柳井市まちなか未来共創 Googleフォームアンケート</span>
+                <a
+                  href={surveyConfig.formUrl || surveyConfig.embedUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 text-blue-600 hover:underline font-bold"
+                >
+                  <span>別ウィンドウで開く</span>
+                  <ExternalLink className="w-3.5 h-3.5" />
+                </a>
+              </div>
+              <div className="w-full bg-white rounded-2xl overflow-hidden border border-slate-200 shadow-2xs">
+                <iframe
+                  src={surveyConfig.embedUrl}
+                  width="100%"
+                  height="850"
+                  frameBorder="0"
+                  marginHeight={0}
+                  marginWidth={0}
+                  className="w-full min-h-[750px] border-0"
+                  title="まちなか意見投稿 Googleフォーム"
+                >
+                  読み込んでいます…
+                </iframe>
+              </div>
+            </div>
+          ) : submitted ? (
             <div className="text-center py-12 animate-in fade-in zoom-in duration-500">
               <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
                 <CheckCircle2 className="w-10 h-10 text-green-600" />

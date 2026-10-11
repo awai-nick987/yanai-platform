@@ -781,6 +781,12 @@ export const INITIAL_SYSTEM_SETTINGS: SystemSettings = {
   independentMode: true,
   spreadSheetSynced: true,
   spreadSheetId: '1YnAI-MachiNaka-DreamPlan-2026-DataStore',
+  googleFormUrl: 'https://docs.google.com/forms/d/e/1FAIpQLScSampleYanaiDreamPlan/viewform',
+  googleFormEmbedUrl: 'https://docs.google.com/forms/d/e/1FAIpQLScSampleYanaiDreamPlan/viewform?embedded=true',
+  surveySheetUrl: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vYanaiSampleSpreadsheet/pubhtml',
+  autoSyncEnabled: true,
+  autoSyncIntervalSec: 60,
+  lastSurveySyncTime: '2026-08-21 03:00:12',
   sectionVisibility: {
     workshopPopup: true,
     mapSection: true,

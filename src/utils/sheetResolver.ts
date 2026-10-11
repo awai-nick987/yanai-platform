@@ -119,3 +119,47 @@ export function parseGoogleSheetHtml(html: string): string {
     )
     .join("\n");
 }
+
+/**
+ * GoogleフォームのURLから埋め込み用URL (embedUrl) を生成・正規化
+ * 例: https://docs.google.com/forms/d/e/.../viewform -> .../viewform?embedded=true
+ * 例: https://docs.google.com/forms/d/.../edit -> .../viewform?embedded=true
+ */
+export function resolveGoogleFormEmbedUrl(rawUrl: string): string {
+  if (!rawUrl) return '';
+  let url = rawUrl.trim();
+
+  // forms.gle 短縮リンクの場合はそのまま
+  if (url.includes('forms.gle/')) {
+    return url;
+  }
+
+  // docs.google.com/forms の場合
+  if (url.includes('docs.google.com/forms')) {
+    // 編集画面URL (/edit) の場合は回答画面 (/viewform) に置換
+    url = url.replace(/\/edit(\?.*)?$/, '/viewform');
+    // embedded=true が付いていなければ付与
+    const hasQuery = url.includes('?');
+    if (!url.includes('embedded=true')) {
+      url = hasQuery ? `${url}&embedded=true` : `${url}?embedded=true`;
+    }
+    return url;
+  }
+
+  return url;
+}
+
+/**
+ * URLがGoogleフォームかGoogleスプレッドシートかを判定
+ */
+export function detectGoogleServiceType(rawUrl: string): 'form' | 'sheet' | 'unknown' {
+  if (!rawUrl) return 'unknown';
+  const u = rawUrl.toLowerCase().trim();
+  if (u.includes('forms.gle') || u.includes('/forms/')) {
+    return 'form';
+  }
+  if (u.includes('/spreadsheets/')) {
+    return 'sheet';
+  }
+  return 'unknown';
+}

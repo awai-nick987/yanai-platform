@@ -264,6 +264,11 @@ export default function App() {
     showToast(`メンバー権限を「${newRole.toUpperCase()}」に変更しました`);
   };
 
+  const handleUpdateMember = (updatedMember: TeamMember) => {
+    setMembers(members.map(m => m.id === updatedMember.id ? updatedMember : m));
+    showToast(`メンバー「${updatedMember.name}」の情報を更新しました`);
+  };
+
   const handleAddMember = (newMem: Partial<TeamMember>) => {
     const member: TeamMember = {
       id: `mem-${Date.now()}`,
@@ -939,6 +944,7 @@ export default function App() {
                 onOpenExportModal={() => setIsExportModalOpen(true)}
                 members={members}
                 onUpdateMemberRole={handleUpdateMemberRole}
+                onUpdateMember={handleUpdateMember}
                 onAddMember={handleAddMember}
                 onDeleteMember={handleDeleteMember}
                 onImportSubmissions={handleImportSubmissions}

@@ -24,10 +24,15 @@ import {
   BarChart3,
   Bot,
   Users,
-  Globe
+  Globe,
+  Link2,
+  ExternalLink,
+  Loader2
 } from 'lucide-react';
 import { UserRoleManagement } from './UserRoleManagement';
 import { WorkshopDataImporter } from './WorkshopDataImporter';
+import { resolveGoogleFormEmbedUrl } from '../utils/sheetResolver';
+import { getSurveyConfig, saveSurveyConfig, fetchSurveySheetData } from '../services/surveySyncService';
 
 interface AdminModerationProps {
   submissions: IdeaSubmission[];
@@ -40,6 +45,7 @@ interface AdminModerationProps {
   onOpenExportModal: () => void;
   members?: TeamMember[];
   onUpdateMemberRole?: (memberId: string, newRole: UserRole) => void;
+  onUpdateMember?: (updatedMember: TeamMember) => void;
   onAddMember?: (newMember: Partial<TeamMember>) => void;
   onDeleteMember?: (memberId: string) => void;
   onImportSubmissions?: (newSubmissions: IdeaSubmission[]) => void;
@@ -58,14 +64,24 @@ export const AdminModeration: React.FC<AdminModerationProps> = ({
   onOpenExportModal,
   members = [],
   onUpdateMemberRole,
+  onUpdateMember,
   onAddMember,
   onDeleteMember,
   onImportSubmissions,
   onImportTasks,
   onNavigateTab
 }) => {
-  const [activeAdminTab, setActiveAdminTab] = useState<'visibility' | 'roles' | 'moderation' | 'ws_import' | 'morning_report' | 'cms'>('visibility');
+  const [activeAdminTab, setActiveAdminTab] = useState<'visibility' | 'roles' | 'survey_sync' | 'moderation' | 'ws_import' | 'morning_report' | 'cms'>('visibility');
   
+  // Google Form & Survey Sync Settings state
+  const initialSurveyConfig = getSurveyConfig();
+  const [formUrlInput, setFormUrlInput] = useState(systemSettings.googleFormUrl || initialSurveyConfig.formUrl || '');
+  const [sheetUrlInput, setSheetUrlInput] = useState(systemSettings.surveySheetUrl || initialSurveyConfig.sheetUrl || '');
+  const [autoSyncInput, setAutoSyncInput] = useState<boolean>(systemSettings.autoSyncEnabled ?? initialSurveyConfig.autoSync ?? true);
+  const [syncIntervalInput, setSyncIntervalInput] = useState<number>(systemSettings.autoSyncIntervalSec ?? initialSurveyConfig.syncIntervalSec ?? 60);
+  const [isTestingSync, setIsTestingSync] = useState(false);
+  const [syncFeedback, setSyncFeedback] = useState<string | null>(null);
+
   // CMS state
   const [articleTitle, setArticleTitle] = useState('');
   const [articleCategory, setArticleCategory] = useState<CMSArticle['category']>('committee_report');
@@ -117,6 +133,43 @@ export const AdminModeration: React.FC<AdminModerationProps> = ({
     setArticleTitle('');
     setArticleSummary('');
     setArticleContent('');
+  };
+
+  // Google Form & Survey Sync handlers
+  const handleSaveSurveySyncSettings = (e: React.FormEvent) => {
+    e.preventDefault();
+    const embedUrl = resolveGoogleFormEmbedUrl(formUrlInput);
+    // 1. surveySyncService に永続化
+    saveSurveyConfig(sheetUrlInput, formUrlInput, autoSyncInput, syncIntervalInput);
+    // 2. systemSettings に保存
+    onUpdateSettings({
+      ...systemSettings,
+      googleFormUrl: formUrlInput.trim(),
+      googleFormEmbedUrl: embedUrl,
+      surveySheetUrl: sheetUrlInput.trim(),
+      autoSyncEnabled: autoSyncInput,
+      autoSyncIntervalSec: syncIntervalInput,
+      lastSurveySyncTime: new Date().toLocaleString('ja-JP')
+    });
+    setSyncFeedback('✅ Googleフォームおよび自動同期設定を保存しました。今後はダッシュボードに自動反映されます。');
+    setTimeout(() => setSyncFeedback(null), 4000);
+  };
+
+  const handleTestSync = async () => {
+    if (!sheetUrlInput.trim()) {
+      setSyncFeedback('⚠️ スプレッドシートのURLを入力してください');
+      return;
+    }
+    setIsTestingSync(true);
+    setSyncFeedback(null);
+    try {
+      const res = await fetchSurveySheetData(sheetUrlInput.trim());
+      setSyncFeedback(`✅ 接続成功！ ${res.rows.length} 件の回答データを正常に取得・反映しました。`);
+    } catch (err: any) {
+      setSyncFeedback(`❌ 接続失敗: ${err.message || '取得できませんでした。共有設定をご確認ください'}`);
+    } finally {
+      setIsTestingSync(false);
+    }
   };
 
   const handleWsImportSubmit = (e: React.FormEvent) => {
@@ -190,6 +243,21 @@ export const AdminModeration: React.FC<AdminModerationProps> = ({
           </button>
 
           <button
+            onClick={() => setActiveAdminTab('survey_sync')}
+            className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+              activeAdminTab === 'survey_sync'
+                ? 'bg-white text-slate-900 shadow-xs'
+                : 'text-slate-600 hover:text-slate-900'
+            }`}
+          >
+            <Link2 className="w-3.5 h-3.5 text-blue-600" />
+            <span>Googleフォーム連携</span>
+            {systemSettings.surveySheetUrl && (
+              <span className="w-2 h-2 rounded-full bg-emerald-500" title="自動同期有効"></span>
+            )}
+          </button>
+
+          <button
             onClick={() => setActiveAdminTab('moderation')}
             className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
               activeAdminTab === 'moderation'
@@ -245,9 +313,185 @@ export const AdminModeration: React.FC<AdminModerationProps> = ({
         <UserRoleManagement
           members={members}
           onUpdateMemberRole={onUpdateMemberRole || (() => {})}
+          onUpdateMember={onUpdateMember}
           onAddMember={onAddMember}
           onDeleteMember={onDeleteMember}
         />
+      )}
+
+      {/* TAB: Googleフォーム＆アンケート自動同期設定 (Google Form & Auto-Sync) */}
+      {activeAdminTab === 'survey_sync' && (
+        <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-xs space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-100 pb-5">
+            <div>
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 text-blue-800 text-xs font-bold mb-2 border border-blue-200">
+                <Link2 className="w-3.5 h-3.5 text-blue-600" />
+                Googleフォーム・スプレッドシート連携＆自動更新
+              </div>
+              <h3 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
+                GoogleフォームURL保持＆リアルタイムダッシュボード自動反映
+              </h3>
+              <p className="text-xs sm:text-sm text-slate-500 mt-1">
+                一度Googleフォームや回答スプレッドシートのアドレスを登録すると、ブラウザおよびシステムに恒久保持され、以降は新しい回答が自動で取得・ダッシュボードへ反映されます。
+              </p>
+            </div>
+
+            {onNavigateTab && (
+              <button
+                type="button"
+                onClick={() => onNavigateTab('workspace')}
+                className="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition shadow-xs shrink-0 cursor-pointer"
+              >
+                <BarChart3 className="w-4 h-4" />
+                <span>分析ダッシュボードを開く</span>
+              </button>
+            )}
+          </div>
+
+          {/* Sync Feedback Message */}
+          {syncFeedback && (
+            <div className={`p-4 rounded-2xl text-xs font-bold flex items-center gap-3 animate-in fade-in ${
+              syncFeedback.includes('✅') 
+                ? 'bg-emerald-50 text-emerald-800 border border-emerald-200' 
+                : 'bg-rose-50 text-rose-800 border border-rose-200'
+            }`}>
+              <CheckCircle2 className="w-4 h-4 shrink-0" />
+              <span>{syncFeedback}</span>
+            </div>
+          )}
+
+          <form onSubmit={handleSaveSurveySyncSettings} className="space-y-6">
+            
+            {/* Setting 1: Google Form URL */}
+            <div className="p-5 bg-blue-50/50 rounded-2xl border border-blue-200/80 space-y-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <label className="block text-sm font-bold text-slate-900">
+                    ① GoogleフォームのURL（回答用 / 埋め込み用 embedUrl）
+                  </label>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    通常の回答URLまたは短縮URL（forms.gle）を貼り付けてください。自動で <code>?embedded=true</code> 付きの埋め込みURLに変換・保持されます。
+                  </p>
+                </div>
+                {formUrlInput && (
+                  <a
+                    href={formUrlInput}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 text-xs text-blue-600 hover:underline font-bold"
+                  >
+                    <span>テスト表示</span>
+                    <ExternalLink className="w-3.5 h-3.5" />
+                  </a>
+                )}
+              </div>
+
+              <div className="relative">
+                <input
+                  type="url"
+                  value={formUrlInput}
+                  onChange={(e) => setFormUrlInput(e.target.value)}
+                  placeholder="例: https://docs.google.com/forms/d/e/1FAIpQLSc.../viewform"
+                  className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-300 rounded-xl text-xs sm:text-sm text-slate-800 outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <Link2 className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
+              </div>
+
+              {formUrlInput && (
+                <div className="text-[11px] text-blue-800 bg-white p-2.5 rounded-lg border border-blue-200 flex items-center justify-between">
+                  <span className="truncate max-w-lg font-mono">
+                    自動生成された埋め込みURL: {resolveGoogleFormEmbedUrl(formUrlInput)}
+                  </span>
+                  <span className="text-emerald-600 font-bold shrink-0">
+                    ✓ 埋め込み対応
+                  </span>
+                </div>
+              )}
+            </div>
+
+            {/* Setting 2: Google Spreadsheet URL (Answers) */}
+            <div className="p-5 bg-slate-50 rounded-2xl border border-slate-200 space-y-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <label className="block text-sm font-bold text-slate-900">
+                    ② GoogleスプレッドシートのURL（回答データ集計用） <span className="text-rose-500 font-bold">*</span>
+                  </label>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    Googleフォームの「回答」タブ ➔「スプレッドシートにリンク」で作成されたシートのURLを入力してください（「リンクを知っている全員が閲覧可」に設定）。
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleTestSync}
+                  disabled={isTestingSync || !sheetUrlInput.trim()}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-900 hover:bg-slate-800 disabled:bg-slate-300 text-white text-xs font-bold rounded-lg transition cursor-pointer"
+                >
+                  {isTestingSync ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />}
+                  <span>接続テスト</span>
+                </button>
+              </div>
+
+              <div className="relative">
+                <input
+                  type="url"
+                  required
+                  value={sheetUrlInput}
+                  onChange={(e) => setSheetUrlInput(e.target.value)}
+                  placeholder="例: https://docs.google.com/spreadsheets/d/1YnAI-MachiNaka-DreamPlan-2026/edit"
+                  className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-300 rounded-xl text-xs sm:text-sm text-slate-800 outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <FileSpreadsheet className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
+              </div>
+            </div>
+
+            {/* Setting 3: Auto-sync switch & interval */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-5 bg-slate-50 rounded-2xl border border-slate-200">
+              <div className="flex items-center justify-between p-3 bg-white rounded-xl border border-slate-200">
+                <div>
+                  <div className="text-xs font-bold text-slate-900">自動同期・定期更新</div>
+                  <div className="text-[11px] text-slate-500">新しい回答をバックグラウンドで自動取得</div>
+                </div>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={autoSyncInput}
+                    onChange={(e) => setAutoSyncInput(e.target.checked)}
+                    className="sr-only peer"
+                  />
+                  <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
+                </label>
+              </div>
+
+              <div className="flex items-center justify-between p-3 bg-white rounded-xl border border-slate-200">
+                <div>
+                  <div className="text-xs font-bold text-slate-900">同期実行間隔</div>
+                  <div className="text-[11px] text-slate-500">スプレッドシート再取得の頻度</div>
+                </div>
+                <select
+                  value={syncIntervalInput}
+                  onChange={(e) => setSyncIntervalInput(Number(e.target.value))}
+                  className="px-3 py-1.5 border border-slate-300 rounded-lg text-xs font-bold text-slate-800 outline-none cursor-pointer"
+                >
+                  <option value={30}>30秒ごと（超高速）</option>
+                  <option value={60}>60秒ごと（推奨・標準）</option>
+                  <option value={120}>2分ごと</option>
+                  <option value={300}>5分ごと</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Submit Button */}
+            <div className="flex items-center justify-end gap-3 pt-2">
+              <button
+                type="submit"
+                className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm font-bold rounded-xl shadow-xs transition flex items-center gap-2 cursor-pointer"
+              >
+                <CheckCircle2 className="w-4 h-4" />
+                <span>設定を保存して自動更新を有効化</span>
+              </button>
+            </div>
+          </form>
+        </div>
       )}
 
       {/* TAB 1: メニュー公開設定 (User Requested: 6 Toggles) */}
