@@ -181,8 +181,8 @@ export const LoginModal: React.FC<LoginModalProps> = ({
   const handleFillDemo = (targetRole: UserRole) => {
     setSelectedRoleType(targetRole);
     if (targetRole === 'admin') {
-      setEmail('admin@city-yanai.jp');
-      setPassword(DEFAULT_PASSCODES.admin);
+      setEmail('hiroki987@gmail.com');
+      setPassword('c24680');
     } else if (targetRole === 'workspace') {
       setEmail('shoko@yanai.example.com');
       setPassword(DEFAULT_PASSCODES.workspace);
@@ -558,8 +558,8 @@ export const LoginModal: React.FC<LoginModalProps> = ({
                     onClick={() => handleFillDemo('admin')}
                     className="p-2 rounded-lg bg-white border border-amber-200 hover:border-amber-400 text-left cursor-pointer transition-all hover:shadow-2xs"
                   >
-                    <div className="font-bold text-slate-900">👑 行政管理者</div>
-                    <div className="text-[10px] text-slate-500 font-mono mt-0.5">パス: yanai2026</div>
+                    <div className="font-bold text-slate-900">👑 統括管理者 (hiroki)</div>
+                    <div className="text-[10px] text-slate-500 font-mono mt-0.5">パス: c24680</div>
                   </button>
 
                   <button

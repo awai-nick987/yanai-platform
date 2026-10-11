@@ -1139,6 +1139,20 @@ export const INITIAL_CHAT_MESSAGES: ChatMessage[] = [
 // 4. 30名メンバー名簿・プロジェクト体制（行政・民間・学生・市民・専門家）
 // ==========================================
 export const INITIAL_TEAM_MEMBERS: TeamMember[] = [
+  // 統括管理者
+  {
+    id: 'mem-master-admin',
+    name: 'hiroki（統括管理者）',
+    role: 'プラットフォーム統括管理者 / 全体ディレクター',
+    userRole: 'admin',
+    organization: '柳井市まちなか未来共創プラットフォーム',
+    departmentCategory: 'city_gov',
+    email: 'hiroki987@gmail.com',
+    assignedWgs: ['全体統括', '全WGモデレーション', 'システム管理'],
+    avatarUrl: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=120&auto=format&fit=crop&q=80',
+    status: 'online',
+    bio: '柳井市まちなか未来共創プラットフォームのシステム統括管理者を担当しています。'
+  },
   // 行政・事務局 (6名)
   {
     id: 'mem-01',

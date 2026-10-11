@@ -431,15 +431,18 @@ export const verifyCredentials = (
   const cleanEmail = email.trim().toLowerCase();
   const cleanPasscode = passcode.trim();
 
-  // 1. 管理者マスター
-  if (cleanEmail === 'admin@city-yanai.jp' && cleanPasscode === DEFAULT_PASSCODES.admin) {
+  // 1. 管理者マスター（プロジェクト統括管理者）
+  if (
+    (cleanEmail === 'hiroki987@gmail.com' && (cleanPasscode === 'c24680' || cleanPasscode === DEFAULT_PASSCODES.admin)) ||
+    (cleanEmail === 'admin@city-yanai.jp' && cleanPasscode === DEFAULT_PASSCODES.admin)
+  ) {
     return {
       success: true,
       session: {
         role: 'admin',
         email: cleanEmail,
-        name: '統括管理者（柳井市役所）',
-        organization: '柳井市役所 地域づくり推進課',
+        name: cleanEmail === 'hiroki987@gmail.com' ? 'hiroki（統括管理者）' : '統括管理者（柳井市役所）',
+        organization: '柳井市まちなか未来共創プラットフォーム 総括管理',
         loggedInAt: new Date().toLocaleString('ja-JP')
       }
     };
