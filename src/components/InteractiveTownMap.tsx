@@ -126,33 +126,6 @@ const YANAI_LANDMARKS = [
   }
 ];
 
-/**
- * 緯度経度から柳井市内の最寄りスポット・地区名を高精度に推定判定
- */
-export const getEstimatedYanaiLocationName = (lat: number, lng: number): string => {
-  let closestName = '柳井市まちなかエリア';
-  let minDistance = Infinity;
-
-  for (const lm of YANAI_LANDMARKS) {
-    const dLat = lm.lat - lat;
-    const dLng = lm.lng - lng;
-    const dist = Math.sqrt(dLat * dLat + dLng * dLng);
-    if (dist < minDistance) {
-      minDistance = dist;
-      closestName = `${lm.name.split('（')[0].split('・')[0]}周辺`;
-    }
-  }
-
-  // 近接距離が約500m以内ならスポット名周辺、離れている場合は座標付記
-  if (minDistance < 0.005) {
-    return closestName;
-  } else if (minDistance < 0.015) {
-    return `${closestName} (${lat.toFixed(4)}, ${lng.toFixed(4)})`;
-  } else {
-    return `柳井市指定地点 (${lat.toFixed(4)}, ${lng.toFixed(4)})`;
-  }
-};
-
 // Available Map Tile Providers (100% Free, Official GSI & OpenStreetMap)
 type MapTileLayer = 'gsi_std' | 'gsi_pale' | 'gsi_photo' | 'osm';
 
@@ -823,10 +796,10 @@ export const InteractiveTownMap: React.FC<InteractiveTownMapProps> = ({
                     </span>
                     <div>
                       <div className="text-xs font-black text-slate-900">
-                        {getEstimatedYanaiLocationName(clickedCoord.lat, clickedCoord.lng)}
+                        ピン指定地点
                       </div>
                       <div className="text-[10px] text-slate-500 font-mono">
-                        座標: {clickedCoord.lat.toFixed(5)}, {clickedCoord.lng.toFixed(5)}
+                        緯度: {clickedCoord.lat.toFixed(5)} / 経度: {clickedCoord.lng.toFixed(5)}
                       </div>
                     </div>
                   </div>
@@ -840,15 +813,15 @@ export const InteractiveTownMap: React.FC<InteractiveTownMapProps> = ({
                 </div>
 
                 <div className="p-2 rounded-xl bg-amber-50 border border-amber-200 text-[11px] text-amber-900 leading-relaxed mb-3">
-                  <span className="font-bold">💡 ピンの調整:</span> 地図上の赤ピン（📍）はドラッグして位置を微調整できます。投稿時はこのピンの正確な位置が最優先されます。
+                  <span className="font-bold">💡 ピンの調整:</span> 地図上の赤ピン（📍）はドラッグして位置を微調整できます。投稿フォームではこのピン位置が保存され、エリア名は手描き（自由入力）できます。
                 </div>
 
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => {
-                      const detectedName = getEstimatedYanaiLocationName(clickedCoord.lat, clickedCoord.lng);
                       if (onOpenSubmitWithCoords) {
-                        onOpenSubmitWithCoords(clickedCoord.lat, clickedCoord.lng, detectedName);
+                        // 地点名は勝手に埋めず空文字渡し（住民の自由入力に委ねる）
+                        onOpenSubmitWithCoords(clickedCoord.lat, clickedCoord.lng, '');
                       } else if (onAddNewLocationIdea) {
                         onAddNewLocationIdea();
                       }

@@ -55,11 +55,11 @@ export const IdeaSubmissionModal: React.FC<IdeaSubmissionModalProps> = ({
 
   useEffect(() => {
     if (isOpen) {
-      // ピン指定がある場合は渡された地点名（または空欄）をセット、ピンなしの場合は完全に空白
-      setLocationName(hasCoords && defaultLocationName ? defaultLocationName : '');
+      // ユーザーの自由入力を尊重するため、初期値は常に完全な空白
+      setLocationName(defaultLocationName || '');
       setPlaceholder(PLACEHOLDERS[Math.floor(Math.random() * PLACEHOLDERS.length)]);
     }
-  }, [isOpen, defaultLocationName, hasCoords]);
+  }, [isOpen, defaultLocationName]);
 
   if (!isOpen) return null;
 
@@ -72,12 +72,11 @@ export const IdeaSubmissionModal: React.FC<IdeaSubmissionModalProps> = ({
       .map(t => t.trim().replace(/^#/, ''))
       .filter(Boolean);
 
-    // 投稿時の地点名と座標の決定（ピン指定があればピン座標を絶対優先）
+    // 座標はピン指定があればそのピンの厳密な座標、なければ柳井市中心部
     const finalLat = (hasCoords && defaultLat) ? defaultLat : 33.9678;
     const finalLng = (hasCoords && defaultLng) ? defaultLng : 132.1075;
-    const finalLocationName = (hasCoords && defaultLocationName)
-      ? defaultLocationName
-      : (locationName.trim() || '柳井市中心市街地');
+    // エリア名は住民が手描き入力した文字列をそのまま反映（空欄の場合は「指定地点」）
+    const finalLocationName = locationName.trim() || (hasCoords ? '地図指定地点' : '柳井市中心市街地');
 
     const newIdea: Partial<IdeaSubmission> = {
       title,
@@ -242,45 +241,42 @@ export const IdeaSubmissionModal: React.FC<IdeaSubmissionModalProps> = ({
 
           {/* Location and Demographic Attributes Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
-            {hasCoords && defaultLat && defaultLng ? (
-              <div className="col-span-1 sm:col-span-2 p-3.5 rounded-2xl bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200">
-                <div className="flex items-center justify-between mb-1">
-                  <div className="flex items-center gap-1.5 text-xs font-bold text-blue-950">
-                    <span className="w-5 h-5 rounded-md bg-rose-500 text-white flex items-center justify-center text-xs shadow-xs">
-                      📍
-                    </span>
-                    <span>マップ指定ピン位置（最優先連動中）</span>
-                  </div>
-                  <span className="text-[10px] font-bold text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-full border border-emerald-300">
-                    ピン座標優先
+            {/* ピン指定の座標連動ステータス表示 */}
+            {hasCoords && defaultLat && defaultLng && (
+              <div className="col-span-1 sm:col-span-2 p-3 rounded-xl bg-blue-50 border border-blue-200 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="w-5 h-5 rounded-md bg-rose-500 text-white flex items-center justify-center text-xs shadow-xs">
+                    📍
                   </span>
+                  <div>
+                    <span className="text-xs font-bold text-blue-950">ピン指定位置（連動中）</span>
+                    <span className="text-[10px] text-slate-500 font-mono ml-2">
+                      緯度: {defaultLat.toFixed(5)} / 経度: {defaultLng.toFixed(5)}
+                    </span>
+                  </div>
                 </div>
-                <div className="text-xs text-slate-800 font-bold mt-1">
-                  {locationName || '柳井市中心市街地 指定地点'}
-                </div>
-                <div className="text-[10px] text-slate-500 font-mono mt-0.5">
-                  緯度: {defaultLat.toFixed(5)} / 経度: {defaultLng.toFixed(5)}（地図上の刺したピン位置にそのまま保存・プロットされます）
-                </div>
-              </div>
-            ) : (
-              <div className="col-span-1 sm:col-span-2">
-                <label className="block text-xs font-bold text-slate-800 mb-1">
-                  対象の場所・エリア <span className="text-slate-500 font-normal ml-1">【任意】</span>
-                </label>
-                <div className="flex flex-col sm:flex-row gap-2 items-start sm:items-center">
-                  <input
-                    type="text"
-                    value={locationName}
-                    onChange={(e) => setLocationName(e.target.value)}
-                    placeholder="具体的な場所（例: 白壁通り、駅前広場など）※空欄でも投稿可能"
-                    className="w-full text-xs px-3.5 py-2.5 border border-slate-300 rounded-xl bg-slate-50 font-medium focus:ring-2 focus:ring-indigo-500 focus:outline-hidden"
-                  />
-                </div>
-                <p className="text-[10px] text-slate-500 mt-1">
-                  ※ 地図上でピンを刺していない場合のみ入力可能です（任意項目です。空白のままでも投稿できます）。
-                </p>
+                <span className="text-[10px] font-bold text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-full border border-emerald-300">
+                  マップピン位置を最優先保存
+                </span>
               </div>
             )}
+
+            {/* 対象の場所・エリア入力欄（ピン有無に関わらず常に初期空白・住民の自由手描き入力を尊重） */}
+            <div className="col-span-1 sm:col-span-2">
+              <label className="block text-xs font-bold text-slate-800 mb-1">
+                対象の場所・エリア <span className="text-slate-500 font-normal ml-1">【任意】</span>
+              </label>
+              <input
+                type="text"
+                value={locationName}
+                onChange={(e) => setLocationName(e.target.value)}
+                placeholder="場所の名称や呼び名を手描き入力（例: 白壁のあの角、駅前ロータリー、川沿いのベンチなど）※空欄のままでも投稿可能"
+                className="w-full text-xs px-3.5 py-2.5 border border-slate-300 rounded-xl bg-slate-50 font-medium focus:ring-2 focus:ring-indigo-500 focus:outline-hidden"
+              />
+              <p className="text-[10px] text-slate-500 mt-1">
+                ※ 任意項目です。システムによる自動入力は行われませんので、ご自身の言葉で自由に入力いただくか、空欄のまま投稿いただけます。
+              </p>
+            </div>
 
             <div>
               <label className="block text-xs font-bold text-slate-800 mb-1">

@@ -75,3 +75,63 @@ export const initializeDefaultData = async (initialSubmissions: IdeaSubmission[]
     }
   }
 };
+
+// ==========================================
+// 3. Invitations & Role Applications (Firestore Sync)
+// ==========================================
+const INVITATIONS_COLLECTION = 'invitations';
+const APPLICATIONS_COLLECTION = 'role_applications';
+
+export const subscribeToInvitations = (callback: (data: any[]) => void) => {
+  const q = query(collection(db, INVITATIONS_COLLECTION));
+  return onSnapshot(q, (querySnapshot) => {
+    const list: any[] = [];
+    querySnapshot.forEach((doc) => {
+      list.push(doc.data());
+    });
+    callback(list);
+  }, (err) => {
+    console.warn('Firestore invitations subscription skipped/failed:', err);
+  });
+};
+
+export const saveInvitationToDb = async (invitation: any) => {
+  try {
+    const docRef = doc(db, INVITATIONS_COLLECTION, invitation.id);
+    await setDoc(docRef, invitation);
+  } catch (err) {
+    console.warn('Firestore invitation save failed:', err);
+  }
+};
+
+export const subscribeToRoleApplications = (callback: (data: any[]) => void) => {
+  const q = query(collection(db, APPLICATIONS_COLLECTION));
+  return onSnapshot(q, (querySnapshot) => {
+    const list: any[] = [];
+    querySnapshot.forEach((doc) => {
+      list.push(doc.data());
+    });
+    callback(list);
+  }, (err) => {
+    console.warn('Firestore role_applications subscription skipped/failed:', err);
+  });
+};
+
+export const saveRoleApplicationToDb = async (app: any) => {
+  try {
+    const docRef = doc(db, APPLICATIONS_COLLECTION, app.id);
+    await setDoc(docRef, app);
+  } catch (err) {
+    console.warn('Firestore role_application save failed:', err);
+  }
+};
+
+export const updateRoleApplicationInDb = async (id: string, data: any) => {
+  try {
+    const docRef = doc(db, APPLICATIONS_COLLECTION, id);
+    await updateDoc(docRef, data);
+  } catch (err) {
+    console.warn('Firestore role_application update failed:', err);
+  }
+};
+

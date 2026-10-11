@@ -417,3 +417,37 @@ export interface DemographicFilter {
   statusList: SubmissionStatus[];
   searchQuery: string;
 }
+
+// ==========================================
+// 権限管理・招待・本人確認申請の型定義（本番仕様）
+// ==========================================
+export interface InvitationRecord {
+  id: string;
+  email: string;
+  role: UserRole;
+  token: string;
+  invitedByName: string;
+  issuedAt: string;
+  expiresAt: string;
+  status: 'pending' | 'accepted' | 'expired';
+  used?: boolean;
+}
+
+export interface RoleApplicationRequest {
+  id: string;
+  name: string;
+  email: string;
+  organization: string;
+  roleTitle?: string;
+  requestedRole: UserRole;
+  reason: string;
+  verificationToken: string;
+  isEmailVerified: boolean;
+  emailVerified?: boolean;
+  status: 'pending_verification' | 'pending_approval' | 'approved' | 'rejected' | 'pending';
+  appliedAt: string;
+  verifiedAt?: string;
+  reviewedAt?: string;
+  reviewedBy?: string;
+}
+

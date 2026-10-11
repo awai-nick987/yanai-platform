@@ -38,7 +38,14 @@ import { AdminModeration } from './components/AdminModeration';
 import { LoginModal } from './components/LoginModal';
 import { Footer } from './components/Footer';
 import { AccessDeniedView } from './components/AccessDeniedView';
-import { getStoredAuthSession, clearAuthSession, AuthSession } from './services/authService';
+import { 
+  getStoredAuthSession, 
+  clearAuthSession, 
+  saveAuthSession,
+  verifyEmailToken,
+  verifyInvitationToken,
+  AuthSession 
+} from './services/authService';
 
 import { 
   subscribeToSubmissions, 
@@ -158,11 +165,48 @@ export default function App() {
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
   
-  // Restore Auth Session on Mount
+  // Restore Auth Session & Handle URL Tokens on Mount
   useEffect(() => {
+    // 1. 保存されたセッションの復元
     const session = getStoredAuthSession();
     if (session && session.role) {
       setCurrentRole(session.role);
+    }
+
+    // 2. URLクエリパラメータの解析（ディファクトスタンダードなメール認証フロー）
+    const searchParams = new URLSearchParams(window.location.search);
+    const verifyToken = searchParams.get('verify_token');
+    const appId = searchParams.get('app_id');
+    const inviteToken = searchParams.get('token');
+
+    // パターンA: 権限申請のメール本人確認リンクをクリックした場合
+    if (verifyToken && appId) {
+      verifyEmailToken(verifyToken, appId).then((res) => {
+        if (res.success) {
+          showToast(`✅ ${res.application?.email} の本人確認が完了しました！管理者の承認をお待ちください。`);
+        } else {
+          showToast(`メール確認エラー: ${res.error || '無効なリンクです'}`);
+        }
+        // URLパラメータをクリア（見た目をスッキリ）
+        window.history.replaceState({}, document.title, window.location.pathname);
+      });
+    }
+
+    // パターンB: 管理者からの招待メールリンク（?token=YNA-xxxx）をクリックした場合
+    if (inviteToken) {
+      const res = verifyInvitationToken(inviteToken);
+      if (res.success && res.session) {
+        saveAuthSession(res.session);
+        setCurrentRole(res.session.role);
+        showToast(`✅ 招待認証に成功しました！「${res.session.name}」としてログインしました。`);
+        if (res.session.role === 'admin') setActiveTab('admin');
+        else if (res.session.role === 'workspace') setActiveTab('workspace');
+        else if (res.session.role === 'recruiter') setActiveTab('recruiter_admin');
+
+        window.history.replaceState({}, document.title, window.location.pathname);
+      } else {
+        showToast(`招待リンクエラー: ${res.error || '招待コードが無効または期限切れです'}`);
+      }
     }
   }, []);
 
@@ -679,6 +723,7 @@ export default function App() {
                           }}
                           onSelectSubmissionForDetails={(sub) => setSelectedDetailSubmission(sub)}
                           onAddNewLocationIdea={() => setIsSubmitModalOpen(true)}
+                          onOpenSubmitWithCoords={handleOpenSubmitWithCoords}
                         />
                       ));
                     case 'idobata':

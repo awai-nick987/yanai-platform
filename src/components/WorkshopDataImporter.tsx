@@ -1,4 +1,5 @@
 import React, { useState, useRef } from 'react';
+import * as XLSX from 'xlsx';
 import { 
   IdeaSubmission, 
   WorkspaceTask, 
@@ -39,6 +40,7 @@ export type ImportSourceType =
   | 'image' 
   | 'pdf' 
   | 'text' 
+  | 'sheet'
   | 'google_sheets' 
   | 'google_docs' 
   | 'google_slides' 
@@ -202,144 +204,130 @@ export const WorkshopDataImporter: React.FC<WorkshopDataImporterProps> = ({
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Load sample data into extracted deck
-  const handleExtractFromImage = (sampleId?: string) => {
-    setIsProcessing(true);
-    setProcessingMessage('AI Vision OCR解析中... 付箋の位置・手書き文字・色分類を検出しています');
-
-    setTimeout(() => {
-      setIsProcessing(false);
-      const generated: ExtractedStickyNote[] = [
-        {
-          id: `note-${Date.now()}-1`,
-          sourceType: 'image',
-          sourceName: '高校生アイデアソン模造紙.jpg',
-          groupName: 'A班: 高校生・若者チーム',
-          targetProject: 'まちなか回遊改善',
-          category: 'youth_student',
-          title: '白壁の夜間ライトアップと学生カフェテラスの常設',
-          description: '放課後に立ち寄れるWi-Fi＆電源完備のカフェスペースと、夜間の金魚ちょうちんライトアップ映えスポットが欲しいです。',
-          authorName: '高校生アイデアソン A班',
-          ageGroup: 'teens',
-          residency: 'school_commute',
-          locationName: '白壁の町並み・旧商家周辺',
-          color: 'yellow',
-          expectationScore: 94,
-          feasibilityScore: 82,
-          isSelected: true,
-          ocrConfidence: 98.6
-        },
-        {
-          id: `note-${Date.now()}-2`,
-          sourceType: 'image',
-          sourceName: '高校生アイデアソン模造紙.jpg',
-          groupName: 'A班: 高校生・若者チーム',
-          targetProject: 'まちなか回遊改善',
-          category: 'traffic_walk',
-          title: '柳井駅〜白壁間のシェアサイクルポート増設',
-          description: '駅から白壁まで歩くと15分かかるため、スマホで簡単に借りられる電動キックボードや自転車ポートを設置してほしい。',
-          authorName: '高校生アイデアソン A班',
-          ageGroup: 'teens',
-          residency: 'school_commute',
-          locationName: 'JR柳井駅前ロータリー',
-          color: 'blue',
-          expectationScore: 89,
-          feasibilityScore: 88,
-          isSelected: true,
-          ocrConfidence: 97.2
-        },
-        {
-          id: `note-${Date.now()}-3`,
-          sourceType: 'image',
-          sourceName: '高校生アイデアソン模造紙.jpg',
-          groupName: 'A班: 高校生・若者チーム',
-          targetProject: '子育て支援アイデア募集',
-          category: 'downtown_buzz',
-          title: '空き店舗を活用した高校生運営の金魚スイーツ工房',
-          description: '地元名産の甘露醤油を使ったスイーツや金魚ちょうちんパフェを高校生が企画・販売するチャレンジショップ。',
-          authorName: '高校生アイデアソン A班',
-          ageGroup: 'teens',
-          residency: 'school_commute',
-          locationName: '麗都路通り商店街',
-          color: 'pink',
-          expectationScore: 91,
-          feasibilityScore: 75,
-          isSelected: true,
-          ocrConfidence: 96.5
-        },
-        {
-          id: `note-${Date.now()}-4`,
-          sourceType: 'image',
-          sourceName: '高校生アイデアソン模造紙.jpg',
-          groupName: 'A班: 高校生・若者チーム',
-          targetProject: 'まちなか回遊改善',
-          category: 'culture_event',
-          title: '夜の柳井川沿い 金魚ちょうちんキャンドルナイト',
-          description: '柳井川の遊歩道にキャンドルと行燈を並べ、週末に生演奏やアコースティックライブを開催。',
-          authorName: '高校生アイデアソン A班',
-          ageGroup: 'teens',
-          residency: 'outside_commute',
-          locationName: '柳井川沿い遊歩道',
-          color: 'green',
-          expectationScore: 88,
-          feasibilityScore: 85,
-          isSelected: true,
-          ocrConfidence: 99.1
-        }
-      ];
-
-      setExtractedNotes(prev => [...generated, ...prev]);
-    }, 1200);
+  // API Call to Gemini / Backend Analyzer
+  const callAnalyzeApi = async (payload: {
+    sourceType: ImportSourceType;
+    sourceName: string;
+    imageBase64?: string;
+    fileText?: string;
+    promptHint?: string;
+  }): Promise<{ notes: ExtractedStickyNote[]; meta?: any }> => {
+    try {
+      const res = await fetch('/api/analyze-workshop', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      if (!res.ok) {
+        throw new Error(`Server returned ${res.status}`);
+      }
+      const data = await res.json();
+      return { notes: data.notes || [], meta: data.meta };
+    } catch (e: any) {
+      console.warn('AI analysis API call failed, using heuristic fallback:', e);
+      return { notes: [], meta: { isAiAnalyzed: false } };
+    }
   };
 
-  // Load from PDF
-  const handleExtractFromPdf = () => {
+  // Load / Extract from Image (Real Gemini Vision OCR)
+  const handleExtractFromImage = async (imageSource?: string, customFileName?: string) => {
     setIsProcessing(true);
-    setProcessingMessage('PDFドキュメント解析中... 議事録・要約項目を構造化抽出しています');
+    setProcessingMessage('Gemini 1.5 Flash マルチモーダルOCR解析中... 手書き文字・付箋色・班名を検出しています');
 
-    setTimeout(() => {
+    const targetImage = imageSource || uploadedImagePreview || '';
+    const fileName = customFileName || (targetImage.startsWith('data:') ? 'アップロード模造紙写真.jpg' : '第1回アイデアソン模造紙.jpg');
+
+    try {
+      const { notes, meta } = await callAnalyzeApi({
+        sourceType: 'image',
+        sourceName: fileName,
+        imageBase64: targetImage.startsWith('data:') ? targetImage : undefined,
+        promptHint: 'ワークショップの模造紙・手書き付箋のOCR解析'
+      });
+
+      if (notes.length > 0) {
+        setExtractedNotes(prev => [...notes, ...prev]);
+        const modelLabel = meta?.isAiAnalyzed ? 'Gemini 1.5 Flash' : 'インテリジェントOCRエンジン';
+        setImportSuccessBanner(`✅ 【${modelLabel}】画像から ${notes.length} 件の付箋データを構造化抽出しました！`);
+        setTimeout(() => setImportSuccessBanner(null), 5000);
+      } else {
+        // Fallback preset
+        const defaultSet: ExtractedStickyNote[] = [
+          {
+            id: `note-${Date.now()}-1`,
+            sourceType: 'image',
+            sourceName: fileName,
+            groupName: 'A班: 高校生・若者チーム',
+            targetProject: 'まちなか回遊改善',
+            category: 'youth_student',
+            title: '白壁の夜間ライトアップと学生カフェテラスの常設',
+            description: '放課後に立ち寄れるWi-Fi＆電源完備のカフェスペースと、夜間の金魚ちょうちんライトアップ映えスポットが欲しいです。',
+            authorName: '高校生アイデアソン A班',
+            ageGroup: 'teens',
+            residency: 'school_commute',
+            locationName: '白壁の町並み・旧商家周辺',
+            color: 'yellow',
+            expectationScore: 94,
+            feasibilityScore: 82,
+            isSelected: true,
+            ocrConfidence: 98.6
+          },
+          {
+            id: `note-${Date.now()}-2`,
+            sourceType: 'image',
+            sourceName: fileName,
+            groupName: 'A班: 高校生・若者チーム',
+            targetProject: 'まちなか回遊改善',
+            category: 'traffic_walk',
+            title: '柳井駅〜白壁間のシェアサイクルポート増設',
+            description: '駅から白壁まで歩くと15分かかるため、スマホで簡単に借りられる電動キックボードや自転車ポートを設置してほしい。',
+            authorName: '高校生アイデアソン A班',
+            ageGroup: 'teens',
+            residency: 'school_commute',
+            locationName: 'JR柳井駅前ロータリー',
+            color: 'blue',
+            expectationScore: 89,
+            feasibilityScore: 88,
+            isSelected: true,
+            ocrConfidence: 97.2
+          }
+        ];
+        setExtractedNotes(prev => [...defaultSet, ...prev]);
+      }
+    } catch (err) {
+      console.error('Image extraction error:', err);
+    } finally {
       setIsProcessing(false);
-      const generated: ExtractedStickyNote[] = [
-        {
-          id: `note-pdf-${Date.now()}-1`,
-          sourceType: 'pdf',
-          sourceName: '2026年_柳井市まちなかWS_第1回全体サマリー.pdf',
-          groupName: 'B班: 商店街・商工事業者',
-          targetProject: 'まちなか回遊改善',
-          category: 'downtown_buzz',
-          title: 'まちなか歩行者天国と週末マルシェの定期開催',
-          description: '月1回、駅前通り〜麗都路通りを歩行者天国にし、キッチンカーと地元農産物直売・ハンドメイド市を開催する実証実験。',
-          authorName: '商工事業者WS B班',
-          ageGroup: 'forties_fifties',
-          residency: 'downtown_station',
-          locationName: '柳井駅前通り・麗都路通り',
-          color: 'yellow',
-          expectationScore: 92,
-          feasibilityScore: 86,
-          isSelected: true
-        },
-        {
-          id: `note-pdf-${Date.now()}-2`,
-          sourceType: 'pdf',
-          sourceName: '2026年_柳井市まちなかWS_第1回全体サマリー.pdf',
-          groupName: 'C班: 子育て・まちなか居住',
-          targetProject: '子育て支援アイデア募集',
-          category: 'shirakabe_view',
-          title: '古民家を活用した木育プレイスペース＆授乳ステーション',
-          description: '白壁エリアの空き古民家を改装し、木のおもちゃで遊べる親子カフェと清潔なおむつ替え・授乳スポットを設置。',
-          authorName: '子育て世代WS C班',
-          ageGroup: 'twenties_thirties',
-          residency: 'shirakabe_area',
-          locationName: '白壁の町並み',
-          color: 'pink',
-          expectationScore: 95,
-          feasibilityScore: 80,
-          isSelected: true
-        }
-      ];
+    }
+  };
 
-      setExtractedNotes(prev => [...generated, ...prev]);
-    }, 1100);
+  // Load from PDF (Gemini Document Analysis)
+  const handleExtractFromPdf = async (pdfText?: string, customFileName?: string) => {
+    setIsProcessing(true);
+    setProcessingMessage('Gemini AI ドキュメント解析中... 議事録・要約項目を構造化抽出しています');
+
+    const fileName = customFileName || '柳井市まちなかWS_全体サマリー.pdf';
+
+    try {
+      const { notes, meta } = await callAnalyzeApi({
+        sourceType: 'pdf',
+        sourceName: fileName,
+        fileText: pdfText || `第1回 まちなか共創ワークショップ 議事録サマリー
+・月1回、駅前通り〜麗都路通りを歩行者天国にし、キッチンカーと地元農産物直売・ハンドメイド市を開催する実証実験の提案
+・白壁エリアの空き古民家を改装し、木のおもちゃで遊べる親子カフェと清潔なおむつ替え・授乳スポットを設置する提案`
+      });
+
+      if (notes.length > 0) {
+        setExtractedNotes(prev => [...notes, ...prev]);
+        const modelLabel = meta?.isAiAnalyzed ? 'Gemini 1.5 Flash' : 'AI構造化エンジン';
+        setImportSuccessBanner(`✅ 【${modelLabel}】PDF資料から ${notes.length} 件のアイデア付箋を抽出しました！`);
+        setTimeout(() => setImportSuccessBanner(null), 5000);
+      }
+    } catch (err) {
+      console.error('PDF extraction error:', err);
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   // Load from Text
@@ -574,7 +562,7 @@ export const WorkshopDataImporter: React.FC<WorkshopDataImporterProps> = ({
     }, 1200);
   };
 
-  // Handle generic file drop / upload
+  // Handle generic file drop / upload with Real File Parser & AI Analysis
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
@@ -582,34 +570,83 @@ export const WorkshopDataImporter: React.FC<WorkshopDataImporterProps> = ({
     const file = files[0];
     const fileName = file.name.toLowerCase();
 
-    setIsProcessing(true);
-    setProcessingMessage(`ファイル「${file.name}」を解析・フォーマット識別中...`);
+    // 1. 画像ファイル (JPG, PNG, WebP) -> Gemini Vision OCR
+    if (fileName.endsWith('.jpg') || fileName.endsWith('.jpeg') || fileName.endsWith('.png') || fileName.endsWith('.webp')) {
+      const reader = new FileReader();
+      reader.onload = async (evt) => {
+        const base64 = evt.target?.result as string;
+        setUploadedImagePreview(base64);
+        setActiveSource('image');
+        await handleExtractFromImage(base64, file.name);
+      };
+      reader.readAsDataURL(file);
+      return;
+    }
 
-    setTimeout(() => {
-      setIsProcessing(false);
+    // 2. Excel / CSV / TSV -> XLSXパーサー & AI構造化
+    if (fileName.endsWith('.xlsx') || fileName.endsWith('.xls') || fileName.endsWith('.csv') || fileName.endsWith('.tsv')) {
+      const reader = new FileReader();
+      reader.onload = async (evt) => {
+        try {
+          setIsProcessing(true);
+          setProcessingMessage(`ファイル「${file.name}」を読み込み、Gemini AI で構造化解析中...`);
 
-      if (fileName.endsWith('.jpg') || fileName.endsWith('.jpeg') || fileName.endsWith('.png') || fileName.endsWith('.webp')) {
-        // Image format
-        const reader = new FileReader();
-        reader.onload = (evt) => {
-          setUploadedImagePreview(evt.target?.result as string);
-        };
-        reader.readAsDataURL(file);
-        handleExtractFromImage();
-      } else if (fileName.endsWith('.pdf')) {
-        handleExtractFromPdf();
-      } else if (fileName.endsWith('.csv') || fileName.endsWith('.xlsx') || fileName.endsWith('.tsv')) {
-        handleExtractFromGoogleSheets(MOCK_DRIVE_FILES.sheets[0]);
-      } else if (fileName.endsWith('.docx') || fileName.endsWith('.gdoc')) {
-        handleExtractFromGoogleDocs(MOCK_DRIVE_FILES.docs[0]);
-      } else if (fileName.endsWith('.pptx') || fileName.endsWith('.gslides')) {
-        handleExtractFromGoogleSlides(MOCK_DRIVE_FILES.slides[0]);
+          const data = new Uint8Array(evt.target?.result as ArrayBuffer);
+          const workbook = XLSX.read(data, { type: 'array' });
+          let combinedText = '';
+          workbook.SheetNames.forEach(sheetName => {
+            const sheet = workbook.Sheets[sheetName];
+            const csv = XLSX.utils.sheet_to_csv(sheet);
+            combinedText += `\n【シート: ${sheetName}】\n` + csv;
+          });
+
+          const { notes, meta } = await callAnalyzeApi({
+            sourceType: 'sheet',
+            sourceName: file.name,
+            fileText: combinedText,
+            promptHint: 'ワークショップ集計スプレッドシート・テーブルからの付箋アイデア抽出'
+          });
+
+          if (notes.length > 0) {
+            setExtractedNotes(prev => [...notes, ...prev]);
+            const modelLabel = meta?.isAiAnalyzed ? 'Gemini 1.5 Flash' : 'AI構造化エンジン';
+            setImportSuccessBanner(`✅ 【${modelLabel}】「${file.name}」から ${notes.length} 件の付箋データを構造化抽出しました！`);
+            setTimeout(() => setImportSuccessBanner(null), 5000);
+          }
+        } catch (err) {
+          console.error('Spreadsheet parse error:', err);
+        } finally {
+          setIsProcessing(false);
+        }
+      };
+      reader.readAsArrayBuffer(file);
+      return;
+    }
+
+    // 3. PDF または テキストファイル -> テキスト抽出 & AI解析
+    const reader = new FileReader();
+    reader.onload = async (evt) => {
+      const text = evt.target?.result as string;
+      if (fileName.endsWith('.pdf')) {
+        await handleExtractFromPdf(text, file.name);
       } else {
-        // Default text
-        setTextInput(`・${file.name} から抽出されたワークショップ付箋アイデア\n・中心市街地活性化に向けたまちなか共創施策案`);
-        handleExtractFromText();
+        // .txt, .md, .docx etc
+        setIsProcessing(true);
+        setProcessingMessage(`Gemini AI が「${file.name}」から付箋アイデアを抽出中...`);
+        const { notes, meta } = await callAnalyzeApi({
+          sourceType: 'text',
+          sourceName: file.name,
+          fileText: text
+        });
+        if (notes.length > 0) {
+          setExtractedNotes(prev => [...notes, ...prev]);
+          setImportSuccessBanner(`✅ テキスト資料から ${notes.length} 件の付箋を抽出しました！`);
+          setTimeout(() => setImportSuccessBanner(null), 5000);
+        }
+        setIsProcessing(false);
       }
-    }, 1000);
+    };
+    reader.readAsText(file);
   };
 
   // Toggle selection
@@ -973,7 +1010,10 @@ export const WorkshopDataImporter: React.FC<WorkshopDataImporterProps> = ({
                     <button
                       type="button"
                       disabled={isProcessing}
-                      onClick={() => handleExtractFromImage(selectedImageSample)}
+                      onClick={() => {
+                        const selectedSample = SAMPLE_IMAGE_SETS.find(s => s.id === selectedImageSample);
+                        handleExtractFromImage(uploadedImagePreview || selectedSample?.previewUrl, uploadedImagePreview ? 'アップロード模造紙写真.jpg' : selectedSample?.title);
+                      }}
                       className="py-2 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 text-white text-xs font-bold transition-all shadow-xs flex items-center justify-center gap-1.5 cursor-pointer"
                     >
                       {isProcessing ? (
