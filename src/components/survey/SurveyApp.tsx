@@ -53,6 +53,7 @@ import { RawDataModal } from "./RawDataModal";
 import { CorrelationAnalysisView } from "./CorrelationAnalysisView";
 import { CustomPivotTable } from "./CustomPivotTable";
 import { AnalysisGuideModal } from "./AnalysisGuideModal";
+import { SurveyReportSuite } from "./SurveyReportSuite";
 import { 
   getSurveyConfig, 
   saveSurveyConfig, 
@@ -62,7 +63,7 @@ import {
   SurveyConfig 
 } from "../../services/surveySyncService";
 
-type TabType = "home" | "correlations" | "pivot" | "charts" | "form" | "all";
+type TabType = "home" | "report_suite" | "correlations" | "pivot" | "charts" | "form" | "all";
 
 export function SurveyApp() {
   // キャッシュまたは初期値からデータを復元
@@ -126,9 +127,10 @@ export function SurveyApp() {
         setSyncStatusMessage(`✅ 最新データ（全 ${result.rows.length} 件）を同期・反映しました`);
         setTimeout(() => setSyncStatusMessage(null), 4000);
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       if (!silent) {
-        setSyncStatusMessage(`同期エラー: ${err.message || 'データ取得に失敗しました'}`);
+        const errMsg = err instanceof Error ? err.message : 'データ取得に失敗しました';
+        setSyncStatusMessage(`同期エラー: ${errMsg}`);
         setTimeout(() => setSyncStatusMessage(null), 5000);
       }
     } finally {
@@ -263,7 +265,7 @@ export function SurveyApp() {
       if (data.markdown) {
         setAiMarkdown(data.markdown);
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.warn("AI fallback used:", err);
       // Fallback: keep high-precision deterministic markdown
       setAiMarkdown(deterministicMarkdown);
@@ -327,6 +329,13 @@ export function SurveyApp() {
       label: "ホーム",
       subLabel: "全体概要・対話設計",
       icon: Home,
+    },
+    {
+      id: "report_suite",
+      label: "スライド＆A4統合レポート",
+      subLabel: "住民/部会×要約/詳細(全8種)",
+      badge: "8種スイート",
+      icon: FileText,
     },
     {
       id: "correlations",
@@ -799,6 +808,41 @@ export function SurveyApp() {
         {/* HOME VIEW: Portal Overview & Highlights */}
         {(activeViewTab === "home" || activeViewTab === "all") && (
           <div className="space-y-6">
+            {/* Featured Banner: Display Slide & A4 Portrait Integrated Suite */}
+            <div className="bg-gradient-to-r from-slate-900 via-blue-950 to-emerald-950 text-white p-5 rounded-2xl shadow-sm border border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="px-2.5 py-0.5 rounded-full text-[11px] font-extrabold bg-amber-400 text-slate-950">
+                    NEW 統合スイート搭載
+                  </span>
+                  <span className="text-xs text-blue-200 font-semibold">
+                    ディスプレイ共有用スライド(16:9) ＆ A4タテ印刷ドキュメント（住民用/部会用 × ダイジェスト/詳細 全8種）
+                  </span>
+                </div>
+                <h3 className="text-base sm:text-lg font-black">
+                  📊 スライド共有 ＆ A4タテ印刷 統合レポートスイート（柳井まちなか ＆ 旧河内小187件対応）
+                </h3>
+              </div>
+              <div className="flex flex-wrap items-center gap-2 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => handleSelectTab("report_suite")}
+                  className="px-4 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-black shadow-xs transition cursor-pointer"
+                >
+                  統合レポートスイートを開く &rarr;
+                </button>
+                <a
+                  href="/kawauchi_survey_suite.html"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-3.5 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold border border-white/15 transition inline-flex items-center gap-1"
+                >
+                  <span>専用フル画面(HTML)</span>
+                  <ExternalLink className="w-3.5 h-3.5" />
+                </a>
+              </div>
+            </div>
+
             {/* Municipal Highlight Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4">
               {/* Card 1: Total Responses */}
@@ -1122,6 +1166,18 @@ export function SurveyApp() {
               </div>
             )}
             <ChartsDashboard summary={summary} />
+          </div>
+        )}
+
+        {/* View Section 4.5: Display Slide & A4 Portrait Print Integrated Report Suite */}
+        {(activeViewTab === "report_suite" || activeViewTab === "all") && (
+          <div className="space-y-4">
+            <SurveyReportSuite
+              summary={summary}
+              correlations={correlations}
+              rows={filteredSurveyRows}
+              dataSourceName={dataSourceName}
+            />
           </div>
         )}
 
